@@ -66,7 +66,7 @@ always@*
                   ctrl_maquina_next = s1;
                else begin
 						 clk_timer_next = clk_timer_next;
-						 E_Esc_next = E_Esc_next;
+						 E_Esc_next = 0;
 						 E_Lect_next = E_Lect_next;
                    ctrl_maquina_next = s2; end
 						end
@@ -75,36 +75,41 @@ always@*
 				//C_T si es verdadera escribe en clock, sino en timer.. Esta determina los valores a enviar a escribir
 				// los del timer o los del clock, envia direcciones de min, hora, seg y datos de los mismos
 				// los otros datos y direcciones ingresan directamente a la de escritura o son fijos ya.
-					E_Esc_next = 1;
-					if (~T_Esc) begin
-						if (C_T) begin
-							//Datos y direcciones del clock
-							E_Esc_next = 1;
-							clk_timer_next = 1; // Variable que indica que esta escribiendo
-							segundo = clk_seg;   //Datos RAM Clock
-							minuto = clk_min;
-							hora = clk_hora;
-							Dir_hora = 8'b00100011;  //Dir RAM Clock
-							Dir_minuto = 8'b00100010;
-							Dir_segundo = 8'b00100001;
-							end
+					if (Esc_Lee) begin
+						E_Esc_next = 1;
+						if (~T_Esc) begin
+							if (C_T) begin
+								//Datos y direcciones del clock
+								E_Esc_next = 1;
+								clk_timer_next = 1; // Variable que indica que esta escribiendo
+								segundo = clk_seg;   //Datos RAM Clock
+								minuto = clk_min;
+								hora = clk_hora;
+								Dir_hora = 8'b00100011;  //Dir RAM Clock
+								Dir_minuto = 8'b00100010;
+								Dir_segundo = 8'b00100001;
+								end
+							else begin
+								//Datos y direcciones del timer
+								clk_timer_next = 0;
+								segundo = tim_seg;    //Datos RAM Clock
+								minuto = tim_min;
+								E_Esc_next = 1;
+								hora = tim_hora;
+								Dir_hora = 8'b01000011;  //Dir RAM timer
+								Dir_minuto = 8'b01000010;
+								Dir_segundo = 8'b01000001;
+								end end
 						else begin
-							//Datos y direcciones del timer
-							clk_timer_next = 0;
-							segundo = tim_seg;    //Datos RAM Clock
-							minuto = tim_min;
-							E_Esc_next = 1;
-							hora = tim_hora;
-							Dir_hora = 8'b01000011;  //Dir RAM timer
-							Dir_minuto = 8'b01000010;
-							Dir_segundo = 8'b01000001;
+							 ctrl_maquina_next = s0;
+							 E_Esc_next = 0;
+							end	
+							end
+						else 	 
+							begin 
+							ctrl_maquina_next = s0;
+							 E_Esc_next = 0; 
 							end end
-               else begin
-                   ctrl_maquina_next = s0;
-						 E_Esc_next = 1;
-						end	
-						end
-						
 				s2: begin
 			//Estado de lectura, hay dos posibles datos a leer, los del timer o los del Clock
 				//C_T si es verdadera lee en clock, sino en timer.. Esta determina las direcciones a leer
@@ -132,7 +137,7 @@ always@*
 				default : ctrl_maquina_next = s0;	
 			endcase
 		end
-///////////// Variables de control de las maquinas de escritura y lectura////////////////
+  //////////// Variables de control de las maquinas de escritura y lectura/////////////
 		assign Lee = E_Lect_reg;   
 		assign Escribe = E_Esc_reg;
 		assign clk_timer = clk_timer_reg;

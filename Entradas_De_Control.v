@@ -26,7 +26,7 @@ localparam Tcs = 5; // tiempo minimo del chip select en bajo (50, para escribir)
 localparam Tf = 0 ; // tiempo de bajada del flanco (fall) 
 localparam Tr = 0 ; // tiempo de subida del flanco (rise)
 localparam Twr = 6 ; // tiempo en bajo del pulso de escritura, incluye tiempo de rise
-localparam Tw = 11; // tiempo de transferencia (tiempo que esta en alto el chip select, incluye el Tfall)
+localparam Tw = 12; // tiempo de transferencia (tiempo que esta en alto el chip select, incluye el Tfall)
 localparam Tdw = 5; // tiempo que el dato debe estar presente durante el pulso negativo de WR(escribe)
 localparam Tdh = 1; // tiempo de hold(tiempo que debe permancecer el dato desp que cambia de 0 a 1 el WR)
 localparam TA_Ds = 1 ; // tmpo ants q debe estar en estd en bajo el A/D (ctrl de datos y dir) del CS
@@ -116,7 +116,7 @@ always @( posedge clk, posedge reset) begin
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////
 	always@*
 			begin
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
+			if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw -1) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
 				DIR_next = 1'b1;
 			else 
 				DIR_next = 1'b0;
@@ -124,7 +124,7 @@ always @( posedge clk, posedge reset) begin
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
 	always@*
 			begin
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh))
+			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw -1) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh))
 				DAT_next = 1'b1;
 			else 
 				DAT_next = 1'b0;
@@ -139,9 +139,9 @@ always @( posedge clk, posedge reset) begin
 		end
 	always@*
 		begin 
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh - 1))
+			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh ))
 				En_tristate_next = 1;
-			else if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh - 1 ))
+			else if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw ) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
 				En_tristate_next = 1;
 			else 
 				En_tristate_next = 0;

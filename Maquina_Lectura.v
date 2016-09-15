@@ -70,14 +70,20 @@ always@*
 		  En_Lect_next = En_Lect_reg;
         Dato_Dir_next = Dato_Dir_reg;
 		  Term_Lect_next = Term_Lect_reg;
-		  Seg_C_next = 8'b11111111;
-			Min_C_next = 8'b11111111;
-			Hora_C_next = 8'b11111111;
-			Dia_next = 8'b11111111;
-			Mes_next = 8'b11111111;
-			Ano_next = 8'b11111111;
+		  Seg_C_next = Seg_C_reg;
+			Min_C_next = Min_C_reg;
+			Hora_C_next = Hora_C_reg;
+			Dia_next = Dia_reg;
+			Mes_next = Mes_reg;
+			Ano_next = Mes_reg;
       case (ctrl_maquina)
             s0 : begin
+				Seg_C_next = 8'b11111111;
+				Min_C_next = 8'b11111111;
+				Hora_C_next = 8'b11111111;
+				Dia_next = 8'b11111111;
+				Mes_next = 8'b11111111;
+				Ano_next = 8'b11111111;
 				Dato_Dir_next = 8'b11111111;
 				////////// Estado general, espera la senal de lectura para empezar el proceso////////////
                if (Lectura) begin
@@ -224,6 +230,6 @@ always@*
 	assign Ano_L = Ano_reg;
 	assign Dir_L = Dato_Dir_reg;
 	assign E_Lect = En_Lect_reg;
-/// Bandera que indica que se termino el proceso de escritura	
+ /// Bandera que indica que se termino el proceso de escritura	
 	assign Term_Lect = Term_Lect_reg; 
 endmodule 
