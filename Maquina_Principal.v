@@ -74,10 +74,9 @@ always@*
 				//Estado de escritura, hay dos posibles datos a escribir, los del timer o los del Clock
 				//C_T si es verdadera escribe en clock, sino en timer.. Esta determina los valores a enviar a escribir
 				// los del timer o los del clock, envia direcciones de min, hora, seg y datos de los mismos
-				// los otros datos y direcciones ingresan directamente a la de escritura o son fijos ya.
-					if (Esc_Lee) begin
-						E_Esc_next = 1;
+				// los otros datos y direcciones ingresan directamente a la de escritura o son fijos ya.						
 						if (~T_Esc) begin
+							E_Esc_next = 1;
 							if (C_T) begin
 								//Datos y direcciones del clock
 								E_Esc_next = 1;
@@ -101,15 +100,11 @@ always@*
 								Dir_segundo = 8'b01000001;
 								end end
 						else begin
-							 ctrl_maquina_next = s0;
+							 ctrl_maquina_next = s2;
+							 E_Lect_next = 1;
 							 E_Esc_next = 0;
 							end	
 							end
-						else 	 
-							begin 
-							ctrl_maquina_next = s0;
-							 E_Esc_next = 0; 
-							end end
 				s2: begin
 			//Estado de lectura, hay dos posibles datos a leer, los del timer o los del Clock
 				//C_T si es verdadera lee en clock, sino en timer.. Esta determina las direcciones a leer
@@ -129,10 +124,15 @@ always@*
 							Dir_minuto = 8'b01000010;
 							Dir_segundo = 8'b01000001;
 							end end
-               else begin
+               else if (Esc_Lee)begin
+                   ctrl_maquina_next = s2;
+						 E_Lect_next = 1;
+						end	
+					else begin
                    ctrl_maquina_next = s3;
-						 E_Lect_next = 0;
-						end	end
+						 E_Lect_next = 1;
+						end	
+						end
 					s3: ctrl_maquina_next = s0;	
 				default : ctrl_maquina_next = s0;	
 			endcase

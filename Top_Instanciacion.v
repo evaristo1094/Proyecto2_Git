@@ -26,7 +26,7 @@ tri [7:0]  Bus_Dato_Di;
 wire Term_Esc,Term_Lect, Escribe, Lee,DAT1,DIR1,cambio_est,clk_timer,E_esc,E_Lect,En_tristate;
 wire[7:0] Dir_hora, Dir_minuto,Dir_segundo, segundo, minuto,hora,Mes_L,Seg_L,Min_L,Ano_L,Hora_L,Dia_L;	 
 wire [7:0]Dato_Le,Dato_Dire,Dir_L;
-reg [7:0]Dato_Direc;
+reg [7:0]Dato_Direc,Dato_Direc_next;
 Maquina_Principal instance_name4 (   .T_Esc(Term_Esc),    .clk(CLK),    .reset(Reset),    .T_Lect(Term_Lect), 
     .C_T(CT),     .Esc_Lee(WR1),     .clk_seg(clk_seg1),     .clk_min(clk_min1),     .clk_hora(clk_hora1), 
     .tim_seg(tim_seg1),    .tim_min(tim_min1),    .tim_hora(tim_hora1),    .Escribe(Escribe),    .Lee(Lee), 
@@ -56,14 +56,20 @@ assign Dia2 = Dia_L;
 assign Ano2 = Ano_L;
 assign Seg2 = Seg_L;
 assign Min2 = Min_L;
-assign Hora2 =Hora_L;
+assign Hora2 = Hora_L;
+always@(posedge CLK, posedge Reset) begin
+	if (Reset)
+		Dato_Direc <=0;
+	else
+		Dato_Direc <= Dato_Direc_next;
+	end	
 always@*
 		begin
 			//Dato_DirL2 = Dato_DirL;
-			if (Escribe)
-				Dato_Direc = Dato_Dire;
+			if (E_esc)
+				Dato_Direc_next = Dato_Dire;
 			else 
-				Dato_Direc = Dir_L;
+				Dato_Direc_next = Dir_L;
 		end	
 assign Bus_Dato_Dir = (En_tristate) ? Dato_Direc : 8'bzzzzzzzz;
 assign Bus_Dato_Di =  Bus_Dato_Dir;

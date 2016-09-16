@@ -60,7 +60,6 @@ always@*
             s0 : begin
 				////////// Estado general, espera la se;al de escritura para empezar el proceso////////////
                if (Escritura) begin
-						Term_Esc_next = 0;
                   ctrl_maquina_next = s1;
 						En_Esc_next = 1;end
                else begin

@@ -125,7 +125,7 @@ module Test_Top;
 
 	end
   always  begin
-		#5	clk = ~clk;
+		#5	CLK = ~CLK;
 		end      
 endmodule
 

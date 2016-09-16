@@ -98,7 +98,7 @@ always @( posedge clk, posedge reset) begin
 	always@*
 			begin
 			if(En_Lect) begin 
-				if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw ) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr))
+				if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw ) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr))
 					RD_next = 1'b0;
 				else 
 					RD_next = 1'b1; end
@@ -116,7 +116,7 @@ always @( posedge clk, posedge reset) begin
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////
 	always@*
 			begin
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw -1) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
+			if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw - 2) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
 				DIR_next = 1'b1;
 			else 
 				DIR_next = 1'b0;
@@ -124,7 +124,7 @@ always @( posedge clk, posedge reset) begin
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
 	always@*
 			begin
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw -1) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh))
+			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw - 2) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh))
 				DAT_next = 1'b1;
 			else 
 				DAT_next = 1'b0;
@@ -137,14 +137,25 @@ always @( posedge clk, posedge reset) begin
 		else 
 			cambio_estado_next = 0;
 		end
+////////// Creacion de senal de Eneable del tri estado del bus de datos ////////////////	
 	always@*
 		begin 
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh ))
-				En_tristate_next = 1;
-			else if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw ) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
-				En_tristate_next = 1;
-			else 
-				En_tristate_next = 0;
+			if (En_Esc)  begin
+				if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh ))
+					En_tristate_next = 1;
+				else if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw ) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
+					En_tristate_next = 1;
+				else 
+					En_tristate_next = 0;
+				end	
+			else if	(En_Lect) begin
+				if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw ) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
+					En_tristate_next = 1;
+				else 	
+					En_tristate_next = 0;
+				end
+			else 	
+					En_tristate_next = 0;		
 		end		
 // asignacion de las senales de salida y  banderas correspondientes
 	assign CS = CS_reg;

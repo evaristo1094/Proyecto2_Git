@@ -77,16 +77,13 @@ always@*
 			Mes_next = Mes_reg;
 			Ano_next = Mes_reg;
       case (ctrl_maquina)
+			
             s0 : begin
-				Seg_C_next = 8'b11111111;
-				Min_C_next = 8'b11111111;
-				Hora_C_next = 8'b11111111;
-				Dia_next = 8'b11111111;
-				Mes_next = 8'b11111111;
-				Ano_next = 8'b11111111;
-				Dato_Dir_next = 8'b11111111;
 				////////// Estado general, espera la senal de lectura para empezar el proceso////////////
-               if (Lectura) begin
+						Dato_Dir_next = 8'b11111111;
+				  if (Lectura) begin
+						
+						Term_Lect_next = 0;
                   ctrl_maquina_next = s1;
 						En_Lect_next = 1;end
                else 
@@ -113,7 +110,6 @@ always@*
 							else if (DAT)
 								Dato_Dir_next = 8'b00000001;
 							else if (cambio_estado ) begin
-								 Term_Lect_next = 1;	
 								 ctrl_maquina_next = s2;
 								  En_Lect_next = 0; end
 							else begin
@@ -123,7 +119,8 @@ always@*
              s2 : begin
 			//////////// Estado de lectura del dato de segundos, tanto del clock como del timer
 		//////////// Recibe de la maquina principal la direccion (clock o timer) donde lee y envia el valor a la salida	
-               if (DIR) 
+               Seg_C_next = Seg_C_reg;
+					if (DIR) 
 						Dato_Dir_next = D_Seg;
                else if (DAT)
 						Seg_C_next = Dato_L;
@@ -138,7 +135,8 @@ always@*
 			
 			//////////// Estado de lectura del dato de minutosos, tanto del clock como del timer
 		//////////// Recibe de la maquina principal la direccion (clock o timer) donde lee y envia el valor a la salida	 
-               if (DIR) 
+              Min_C_next = Min_C_reg;
+				  if (DIR) 
 						Dato_Dir_next = D_Min;
                else if (DAT)
 						Min_C_next = Dato_L ;
@@ -152,7 +150,8 @@ always@*
 				 s4 : begin
 			//////////// Estado de lectura del dato de hora, tanto del clock como del timer
 		//////////// Recibe de la maquina principal la direccion (clock o timer) donde lee y envia el valor a la salida
-               if (DIR) 
+               Hora_C_next = Hora_C_reg;
+					if (DIR) 
 						Dato_Dir_next = D_Hora;
                else if (DAT)
 						Hora_C_next = Dato_L;
@@ -165,7 +164,8 @@ always@*
 						end
 				 s5 : begin
 			//////////// Estado de lectura del dato de dia del y envia el valor a la salida		 
-               if(En_clk) begin
+               Dia_next = Dia_reg;
+					if(En_clk) begin
 						if (DIR) 
 							Dato_Dir_next = 8'b0010100;
 						else if (DAT)
@@ -182,6 +182,7 @@ always@*
 							  end		end
 				 s6 : begin
 			//////////// Estado de lectura del dato de mes del y envia el valor a la salida	
+					Mes_next = Mes_reg;
 					if(En_clk) begin
 						if (DIR) 
 							Dato_Dir_next = 8'b00100101;
@@ -200,13 +201,14 @@ always@*
 						  end end
 				 s7 : begin
 			//////////// Estado de lectura del dato de ano del y envia el valor a la salida	
+				 Ano_next = Ano_reg;
 				 if(En_clk) begin
 						if (DIR) 
 							Dato_Dir_next = 8'b00100110;
 						else if (DAT)
 							Ano_next = Dato_L ;
 						else if (cambio_estado ) begin
-								Term_Lect_next = 1;	
+								Term_Lect_next = 0;	
 							 ctrl_maquina_next = s0;
 							  En_Lect_next = 0; end
 						else begin
