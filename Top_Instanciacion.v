@@ -23,7 +23,9 @@ tim_min1,tim_hora1,Mes1,Dia1,Ano1,output wire [7:0] Mes2,Dia2,Ano2,Seg2,Min2,Hor
 inout wire [7:0] Bus_Dato_Dir);
 
 tri [7:0]  Bus_Dato_Di;  
-wire Term_Esc,Term_Lect, Escribe, Lee,DAT1,DIR1,cambio_est,clk_timer,E_esc,E_Lect,En_tristate;
+wire Term_Esc,Term_Lect, Escribe, Lee,DAT1,DIR1,cambio_est,clk_timer,E_esc,E_Lect,En_tristate,Tr_Lect;
+//wire En_WR;
+reg Tr_L;
 wire[7:0] Dir_hora, Dir_minuto,Dir_segundo, segundo, minuto,hora,Mes_L,Seg_L,Min_L,Ano_L,Hora_L,Dia_L;	 
 wire [7:0]Dato_Le,Dato_Dire,Dir_L;
 reg [7:0]Dato_Direc,Dato_Direc_next;
@@ -46,7 +48,7 @@ Maquina_Lectura instance_name3 (    .clk(CLK),     .reset(Reset),     .DAT(DAT1)
     .En_clk(clk_timer),     .Lectura(Lee),     .cambio_estado(cambio_est),     .D_Seg(Dir_segundo), 
     .D_Min(Dir_minuto),   .D_Hora(Dir_hora),    .Seg_L(Seg_L),    .Min_L(Min_L),    .Hora_L(Hora_L),    
 	 .Ano_L(Ano_L),    .Mes_L(Mes_L),     .Dia_L(Dia_L),     .Term_Lect(Term_Lect),     .E_Lect(E_Lect),   
-	 .Dir_L(Dir_L),		.Dato_L(Dato_Le));
+	 .Dir_L(Dir_L),		.Dato_L(Dato_Le), 	.Tr_Lect(Tr_Lect) );
 assign WRO = WR;
 assign CSO = CS;
 assign ADO = AD;
@@ -58,20 +60,21 @@ assign Seg2 = Seg_L;
 assign Min2 = Min_L;
 assign Hora2 = Hora_L;
 always@(posedge CLK, posedge Reset) begin
-	if (Reset)
+	if (Reset)begin
 		Dato_Direc <=0;
-	else
+		Tr_L <=0; end
+	else  begin
 		Dato_Direc <= Dato_Direc_next;
+		Tr_L <= Tr_Lect; end
 	end	
 always@*
 		begin
-			//Dato_DirL2 = Dato_DirL;
-			if (E_esc)
+			if (E_esc )
 				Dato_Direc_next = Dato_Dire;
 			else 
 				Dato_Direc_next = Dir_L;
 		end	
-assign Bus_Dato_Dir = (En_tristate) ? Dato_Direc : 8'bzzzzzzzz;
+assign Bus_Dato_Dir = (En_tristate | Tr_L ) ? Dato_Direc : 8'bzzzzzzzz;
 assign Bus_Dato_Di =  Bus_Dato_Dir;
 assign Dato_Le = Bus_Dato_Di;
 endmodule

@@ -33,20 +33,18 @@ localparam [2:0] 	s0 = 3'b000, // Variables del control de la maquina de estados
 reg [2:0] ctrl_maquina, ctrl_maquina_next;
 //Registros Auxiliares a utilizar
 reg [7:0] Dato_Dir_reg, Dato_Dir_next;
-reg Term_Esc_reg,Term_Esc_next;
+reg Term_Esc_reg;
 reg En_Esc_reg, En_Esc_next;
 // creacion de los registros a utlizar para controlar las variables
 always @( posedge clk, posedge reset)
 	if (reset)begin
 			ctrl_maquina <= 0;
-			Term_Esc_reg <= 0;
 			Dato_Dir_reg <= 0;
 			En_Esc_reg <= 0;
 	end
 	else begin
 			ctrl_maquina <= ctrl_maquina_next;
 			Dato_Dir_reg <= Dato_Dir_next;
-			Term_Esc_reg <= Term_Esc_next;
 			En_Esc_reg <= En_Esc_next;
 	end
 ////////////////// Maquina de estados///////////////////
@@ -55,7 +53,7 @@ always@*
         ctrl_maquina_next = ctrl_maquina;
 		  En_Esc_next = En_Esc_reg;
         Dato_Dir_next = Dato_Dir_reg;
-		  Term_Esc_next = Term_Esc_reg;
+		  Term_Esc_reg = 0;
       case (ctrl_maquina)
             s0 : begin
 				////////// Estado general, espera la se;al de escritura para empezar el proceso////////////
@@ -65,7 +63,7 @@ always@*
                else begin
 						ctrl_maquina_next = s0;
                   En_Esc_next = 0;
-						Term_Esc_next = 0;
+						Term_Esc_reg = 0;
 						end		end
              s1 : begin
 		//////////// Estado de escritura del dato de segundos, tanto del clock como del timer
@@ -114,7 +112,7 @@ always@*
 		//////////// Recibe de la maquina principal el valor a escribir	
 					if(En_clk) begin
 						if (DIR) 
-							Dato_Dir_next = 8'b0010100;
+							Dato_Dir_next = 8'b00100100;
 						else if (DAT)
 							Dato_Dir_next = Dia;
 						else if (cambio_estado ) begin	 
@@ -174,7 +172,7 @@ always@*
 						else if (DAT)
 							Dato_Dir_next = 8'b00000001;
 						else if (cambio_estado ) begin
-							 Term_Esc_next = 1;	
+							 Term_Esc_reg = 1;	
 							 ctrl_maquina_next = s0;
 							  En_Esc_next = 0; end
 						else begin
@@ -187,7 +185,7 @@ always@*
 						else if (DAT)
 							Dato_Dir_next = 8'b00000001;
 						else if (cambio_estado ) begin
-							 Term_Esc_next = 1;	
+							 Term_Esc_reg = 1;	
 							 ctrl_maquina_next = s0;
 							  En_Esc_next = 0; end
 						else begin

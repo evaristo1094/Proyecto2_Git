@@ -87,7 +87,7 @@ always @( posedge clk, posedge reset) begin
 			begin
 			if (ctrl_count_reg >=(inicio+ TA_Ds) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf +Tr+ Tcs))
 					WR_next = 1'b0;
-			else if(En_Esc) begin 
+			else if(En_Esc ) begin 
 				if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw ) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr))
 					WR_next = 1'b0;
 				else 
