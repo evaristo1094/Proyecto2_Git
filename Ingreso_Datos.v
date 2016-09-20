@@ -33,7 +33,7 @@ module Ingreso_Datos(
 						  
 //...........................................................
 						  
-	reg [7:0] seg_C_reg, seg_C_next;
+	reg [3:0] seg_C_D_reg, seg_C_D_next,seg_C_U_reg, seg_C_U_next;
 	reg [7:0] min_C_reg, min_C_next;
 	reg [7:0] hora_C_reg, hora_C_next;
 	reg [7:0] dia_reg, dia_next;
@@ -74,16 +74,16 @@ module Ingreso_Datos(
 //...........................................................
 					  
 	always @* begin
-		seg_C_next = seg_C_next;
-		min_C_next = min_C_next;
-		hora_C_next = hora_C_next;
-		dia_next = dia_next;
-		mes_next = mes_next;
-		ano_next = ano_next;
-		seg_T_next = seg_T_next;
-		min_T_next = min_T_next;
-		hora_T_next = hora_T_next;
-		contador_maquina_next = contador_maquina_next;
+		seg_C_next = seg_C_reg;
+		min_C_next = min_C_reg;
+		hora_C_next = hora_C_reg;
+		dia_next = dia_reg;
+		mes_next = mes_reg;
+		ano_next = ano_reg;
+		seg_T_next = seg_T_reg;
+		min_T_next = min_T_reg;
+		hora_T_next = hora_T_reg;
+		contador_maquina_next = contador_maquina_reg;
 		
 //***********************ESTADO S0****************************		
 		
@@ -100,14 +100,21 @@ module Ingreso_Datos(
 			s1: begin
 				if(aumenta) begin
 					if (C_T) begin
-						if  (seg_C_next==59)
-						 seg_C_next = 0;
-						else	seg_C_next = seg_C_next + 1;
+						if  (seg_C_D_next == 4'b0101 && seg_C_D_next == 4'b1001 )begin
+						 seg_C_D_next = 0;
+						 seg_C_U_next = 0;
+						 end
+						else	begin
+							if (seg_C_U_next == 4'b1001)begin
+							seg_D_next = seg_D_next + 1;
+							seg_U_next = 0; end
+							else 
+								seg_U_next = seg_U_next + 1;
+							end
 					   end
 						
-						
 					else begin 
-						if  (seg_T_next==59)
+						if  (seg_T_next == 8'b00111011)
 						 seg_T_next = 0;
 						else	seg_T_next = seg_T_next + 1;
 						end
@@ -115,15 +122,15 @@ module Ingreso_Datos(
 						
 				else if(disminuye) begin
 					if (C_T) begin
-						if  (seg_C_next==59)
-						 seg_C_next = 0;
+						if  (seg_C_next == 8'b00000000)
+						 seg_C_next =  6'b111011;
 						else	seg_C_next = seg_C_next - 1;
 						end 
 						
 						
 					else begin 
-						if  (seg_T_next==59)
-						 seg_T_next = 0;
+						if  (seg_T_next== 8'b00000000)
+						 seg_T_next =  6'b111011;
 						else	seg_T_next = seg_T_next - 1;
 						end
 					end

@@ -74,7 +74,7 @@ always@*
 			Hora_C_next = Hora_C_reg;
 			Term_Lect_reg = 0;
 			Dia_next = Dia_reg;
-			Tr_Lect_next = 0;
+			Tr_Lect_next = Tr_Lect_reg;
 			Mes_next = Mes_reg;
 			Ano_next = Mes_reg;
       case (ctrl_maquina)
@@ -171,7 +171,7 @@ always@*
                Dia_next = Dia_reg;
 					if(En_clk) begin
 						if (DIR) 
-							Dato_Dir_next = 8'b0010100;
+							Dato_Dir_next = 8'b00100100;
 						else if (DAT)
 							Dia_next = Dato_L ;
 						else if (cambio_estado ) begin	 
@@ -212,7 +212,7 @@ always@*
 						else if (DAT)
 							Ano_next = Dato_L ;
 						else if (cambio_estado ) begin
-								Term_Lect_reg = 1;	
+							 Term_Lect_reg = 1;	
 							 ctrl_maquina_next = s0;
 							  En_Lect_next = 0; end
 						else begin

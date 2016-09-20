@@ -29,6 +29,8 @@ module Test_Top;
 	reg Reset;
 	reg WR1;
 	reg CT;
+	reg doce_24;
+	reg Btn_Limpiar;
 	reg [7:0] clk_seg1;
 	reg [7:0] clk_min1;
 	reg [7:0] clk_hora1;
@@ -59,7 +61,9 @@ module Test_Top;
 		.CLK(CLK), 
 		.Reset(Reset), 
 		.WR1(WR1), 
-		.CT(CT), 
+		.CT(CT),
+		.doce_24(doce_24),
+		.Btn_Limpiar(Btn_Limpiar),
 		.clk_seg1(clk_seg1), 
 		.clk_min1(clk_min1), 
 		.clk_hora1(clk_hora1), 
@@ -94,6 +98,8 @@ module Test_Top;
 		tim_seg1 = 0;
 		tim_min1 = 0;
 		tim_hora1 = 0;
+		Btn_Limpiar = 0;
+		doce_24 = 0;
 		Mes1 = 0;
 		Dia1 = 0;
 		Ano1 = 0;
@@ -103,6 +109,14 @@ module Test_Top;
       Reset = 1;
 		#10;
       Reset = 0;
+		#10;
+		Btn_Limpiar = 1;
+		#1000;
+		Btn_Limpiar = 0;
+		#10;
+		doce_24 = 1;
+		WR1 = 0;
+		#4000;
 		WR1 = 1;
 		CT = 1;
 		clk_seg1 = 0;
@@ -111,7 +125,8 @@ module Test_Top;
 		Mes1 = 3;
 		Dia1 = 15;
 		Ano1 = 16;
-		#3000;
+		#4000;
+		doce_24 = 1;
 		CT = 0;
 		tim_seg1 = 2;
 		tim_min1 = 3;
@@ -119,8 +134,7 @@ module Test_Top;
 		Mes1 = 5;
 		Dia1 = 6;
 		Ano1 = 10;
-		#3000;
-		WR1 = 0;
+		#4000;
 		// Add stimulus here
 
 	end

@@ -18,8 +18,8 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Maquina_Principal(input wire T_Esc, clk, reset, T_Lect,C_T,Esc_Lee, input wire [7:0] clk_seg,
-clk_min,clk_hora,tim_seg,tim_min,tim_hora, output wire Escribe, Lee,	clk_timer,
+module Maquina_Principal(input wire T_Esc, clk, reset, T_Lect,C_T,Esc_Lee, Btn_Inicializa, input wire [7:0] clk_seg,
+clk_min,clk_hora,tim_seg,tim_min,tim_hora, output wire Escribe, Lee,	clk_timer, Inicializador_MP,
 output reg [7:0] segundo, minuto, hora,Dir_hora,Dir_minuto,Dir_segundo
     );
 localparam [1:0] 	s0 = 2'b00, // Variables del control de la maquina de estados
@@ -28,8 +28,9 @@ localparam [1:0] 	s0 = 2'b00, // Variables del control de la maquina de estados
 						s3 = 2'b11;
 		
 reg [1:0] ctrl_maquina, ctrl_maquina_next;						
-reg E_Esc_reg,E_Esc_next;
+reg E_Esc_reg,E_Esc_next,Inicializador_MP_reg,Inicializador_MP_next;
 reg E_Lect_reg, E_Lect_next,clk_timer_next,clk_timer_reg;
+reg Bandera_escritura,Bandera_escritura_next;
 // creacion de los registros a utlizar para controlar las variables
 always @( posedge clk, posedge reset)
 	if (reset)begin
@@ -37,12 +38,16 @@ always @( posedge clk, posedge reset)
 			E_Esc_reg <= 0;
 			E_Lect_reg <= 0;
 			clk_timer_reg <= 0;
+			Inicializador_MP_reg <=0;
+			Bandera_escritura <=0;
 	end
 	else begin
 			ctrl_maquina <= ctrl_maquina_next;
 			E_Esc_reg <= E_Esc_next;
 			E_Lect_reg <= E_Lect_next;
 			clk_timer_reg <= clk_timer_next;
+			Inicializador_MP_reg <= Inicializador_MP_next;
+			Bandera_escritura <=Bandera_escritura_next;
 	end
 // Maquina de estados
 always@*
@@ -54,20 +59,29 @@ always@*
 		  segundo = 0;
 		  minuto = 0;
 		  hora = 0;
+		  Inicializador_MP_next = Inicializador_MP_reg;
 		  Dir_segundo = 0;
 		  Dir_minuto = 0;
 		  Dir_hora = 0;
+		  Bandera_escritura_next = Bandera_escritura;
 	//////////////////// Maquina de estados ////////////////////////	 
       case (ctrl_maquina)
             s0 : begin
 				// Estado inicial, si se activa la opcion de escritura va al esta de escritura, 
 				// sino se mentiene leyendo datos
-					if (Esc_Lee)
-                  ctrl_maquina_next = s1;
+					if (Btn_Inicializa) begin
+						Inicializador_MP_next = 1;
+						E_Esc_next = 0;
+						E_Lect_next = 0; end
+					else if (Esc_Lee && ~Bandera_escritura) begin
+						Inicializador_MP_next = 0;
+						E_Lect_next = 0; 
+                  ctrl_maquina_next = s1; end
                else begin
 						 clk_timer_next = clk_timer_next;
 						 E_Esc_next = 0;
 						 E_Lect_next = E_Lect_next;
+						 Inicializador_MP_next = 0;
                    ctrl_maquina_next = s2; end
 						end
 				s1 : begin
@@ -101,6 +115,7 @@ always@*
 								end end
 						else begin
 							 ctrl_maquina_next = s2;
+							 Bandera_escritura_next = 1;
 							 E_Lect_next = 1;
 							 E_Esc_next = 0;
 							end	
@@ -113,7 +128,7 @@ always@*
 					E_Lect_next = 1;
 					if (~T_Lect) begin
 						if (C_T) begin
-							clk_timer_next = 1;  // Variable que indica que esta leyendo
+							clk_timer_next = 1;  // Variable que indica que variables esta leyendo
 							Dir_hora = 8'b00100011; //Dir RAM Clock
 							Dir_minuto = 8'b00100010;
 							Dir_segundo = 8'b00100001;
@@ -125,12 +140,13 @@ always@*
 							Dir_segundo = 8'b01000001;
 							end end
                else if (Esc_Lee)begin
-                   ctrl_maquina_next = s2;
-						 E_Lect_next = 1;
+                   ctrl_maquina_next = s0;
+						 E_Lect_next = 0;
 						end	
 					else begin
                    ctrl_maquina_next = s3;
-						 E_Lect_next = 1;
+						 Bandera_escritura_next = 0;
+						 E_Lect_next = 0;
 						end	
 						end
 					s3: ctrl_maquina_next = s0;	
@@ -141,4 +157,5 @@ always@*
 		assign Lee = E_Lect_reg;   
 		assign Escribe = E_Esc_reg;
 		assign clk_timer = clk_timer_reg;
+		assign Inicializador_MP = Inicializador_MP_reg; 
 endmodule

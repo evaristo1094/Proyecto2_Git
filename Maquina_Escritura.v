@@ -18,45 +18,84 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Maquina_Escritura(input wire clk, reset, En_clk, DAT,DIR,Escritura, cambio_estado, 
+module Maquina_Escritura(input wire clk, reset, En_clk, DAT,DIR,Escritura, cambio_estado,Inicializar,doce_24C, 
 input wire [7:0] Seg,Min,Hora,Ano, Mes, Dia,D_Seg,D_Min,D_Hora,output wire  Term_Esc,E_esc, output wire [7:0] Dato_Dire );
 
-localparam [2:0] 	s0 = 3'b000, // Variables del control de la maquina de estados
-						s1 = 3'b001,
-						s2 = 3'b010,
-						s3 = 3'b011,
-						s4 = 3'b100,
-						s5 = 3'b101,
-						s6 = 3'b110,
-						s7 = 3'b111;
+localparam [3:0] 	s0 = 4'b0000, // Variables del control de la maquina de estados
+						s1 = 4'b0001,
+						s2 = 4'b0010,
+						s3 = 4'b0011,
+						s4 = 4'b0100,
+						s5 = 4'b0101,
+						s6 = 4'b0110,
+						s7 = 4'b0111,
+						s8 = 4'b1000;
+reg inicio,inicio_next;
 // contador de la maquina
-reg [2:0] ctrl_maquina, ctrl_maquina_next;
+reg [3:0] ctrl_maquina, ctrl_maquina_next;
 //Registros Auxiliares a utilizar
 reg [7:0] Dato_Dir_reg, Dato_Dir_next;
 reg Term_Esc_reg;
 reg En_Esc_reg, En_Esc_next;
+reg Band_Inicializar,Band_Inicializar_next;
 // creacion de los registros a utlizar para controlar las variables
 always @( posedge clk, posedge reset)
 	if (reset)begin
 			ctrl_maquina <= 0;
 			Dato_Dir_reg <= 0;
 			En_Esc_reg <= 0;
+			Band_Inicializar <=0;
+			inicio <=1;
 	end
 	else begin
 			ctrl_maquina <= ctrl_maquina_next;
 			Dato_Dir_reg <= Dato_Dir_next;
 			En_Esc_reg <= En_Esc_next;
+			Band_Inicializar <= Band_Inicializar_next;
+			inicio <= inicio_next;
 	end
 ////////////////// Maquina de estados///////////////////
+	
 always@*
        begin
         ctrl_maquina_next = ctrl_maquina;
 		  En_Esc_next = En_Esc_reg;
         Dato_Dir_next = Dato_Dir_reg;
 		  Term_Esc_reg = 0;
+		  inicio_next = inicio;
+		  Band_Inicializar_next = Band_Inicializar;
+	////// Inicializacion de los registros////////////	  
+		  if (Inicializar && inicio && ~Band_Inicializar) begin
+				En_Esc_next = 1;
+				 if (DIR) 
+					Dato_Dir_next = 8'b00000000;
+				else if (DAT)
+					Dato_Dir_next = 8'b00010000;
+				else if (cambio_estado ) begin
+					 En_Esc_next =  0;
+					 Band_Inicializar_next = 1; end
+				else 	
+					En_Esc_next =  1;
+					end
+			else if (Band_Inicializar && inicio)	begin 
+					En_Esc_next =  1;
+					if (DIR) 
+						Dato_Dir_next = 8'b00000000;
+					else if (DAT)
+						Dato_Dir_next = 8'b00000000;
+					else if (cambio_estado ) begin
+						 En_Esc_next =  0;
+						 Band_Inicializar_next = 0;
+						 inicio_next =0;	end
+					else 	
+						En_Esc_next =  1;
+						end
+			else 	
+				begin	
+//////////// Inicio de la maquina de estados de escritura//////////////////				
       case (ctrl_maquina)
             s0 : begin
-				////////// Estado general, espera la se;al de escritura para empezar el proceso////////////
+				////////// Estado general, espera la senal de escritura para empezar el proceso////////////
                if (Escritura) begin
                   ctrl_maquina_next = s1;
 						En_Esc_next = 1;end
@@ -171,9 +210,8 @@ always@*
 							Dato_Dir_next = 8'b11110001;
 						else if (DAT)
 							Dato_Dir_next = 8'b00000001;
-						else if (cambio_estado ) begin
-							 Term_Esc_reg = 1;	
-							 ctrl_maquina_next = s0;
+						else if (cambio_estado ) begin	
+							 ctrl_maquina_next = s8;
 							  En_Esc_next = 0; end
 						else begin
 							 En_Esc_next =  1;
@@ -185,15 +223,41 @@ always@*
 						else if (DAT)
 							Dato_Dir_next = 8'b00000001;
 						else if (cambio_estado ) begin
-							 Term_Esc_reg = 1;	
-							 ctrl_maquina_next = s0;
+							 ctrl_maquina_next = s8;
 							  En_Esc_next = 0; end
 						else begin
 							 En_Esc_next =  1;
 							ctrl_maquina_next = s7;  end							
 							end end
+				s8 : begin
+		//////////// Estado de configuracion del formato de hora (12/24) y habilitacion del timer		
+               if (DIR) 
+						Dato_Dir_next = 8'b00000000;
+               else if (DAT) begin
+						if (En_clk)begin
+							if (doce_24C)
+								Dato_Dir_next = 8'b00010000;
+							else 
+								Dato_Dir_next = 8'b00000000;
+							end	
+						else begin
+							if (doce_24C)
+								Dato_Dir_next = 8'b00011000;
+							else 
+								Dato_Dir_next = 8'b00001000;
+							end
+						end
+					else if (cambio_estado )begin
+						 ctrl_maquina_next = s0;
+						 Term_Esc_reg = 1;
+						 En_Esc_next =  0;end
+					else begin
+						 En_Esc_next =  1;
+                  ctrl_maquina_next = s8;  end
+						end
 					default : ctrl_maquina_next = s0;
          endcase
+			end
 		end
 //// Asignacion de los datos de salida/////////					
 	assign Dato_Dire =  Dato_Dir_reg ;
