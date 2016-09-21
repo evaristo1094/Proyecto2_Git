@@ -18,7 +18,7 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Maquina_Lectura(input wire clk, reset, DAT,DIR, En_clk, Lectura,cambio_estado, input wire [7:0] 
+module Maquina_Lectura(input wire clk, reset, DAT,DIR, En_clk, Lectura,cambio_estado,DAT2, input wire [7:0] 
 D_Seg,D_Min,D_Hora, Dato_L, output wire [7:0] Seg_L,Min_L,Hora_L,Ano_L, Mes_L, Dia_L,
 output wire  Term_Lect,E_Lect,Tr_Lect, output wire[7:0] Dir_L  );
 
@@ -31,7 +31,6 @@ localparam [2:0] 	s0 = 3'b000, // Variables del control de la maquina de estados
 						s6 = 3'b110,
 						s7 = 3'b111;
 // contador de la maquina
-reg bandera;
 reg [2:0] ctrl_maquina, ctrl_maquina_next;
 reg [7:0] Dato_Dir_reg, Dato_Dir_next;
 reg [7:0] Seg_C_reg,Seg_C_next,Min_C_reg,Min_C_next,Hora_C_reg,Hora_C_next;
@@ -39,7 +38,7 @@ reg [7:0] Dia_reg, Dia_next,Mes_reg,Mes_next,Ano_reg,Ano_next;
 reg Term_Lect_reg,Tr_Lect_reg,Tr_Lect_next; 
 reg En_Lect_reg, En_Lect_next;
 // creacion de los registros a utlizar para controlar las variables
-always @( posedge clk, posedge reset)
+always @( posedge clk, posedge reset)begin
 	if (reset)begin
 			ctrl_maquina <= 0;
 			En_Lect_reg <= 0;
@@ -49,35 +48,21 @@ always @( posedge clk, posedge reset)
 			Min_C_reg <= 0;
 			Hora_C_reg <= 0;
 			Mes_reg <= 0;
-			bandera<=0;
 			Dia_reg <= 0;
 			Ano_reg <= 0;
 	end
 	else begin
-			if(DAT)
-				bandera <=0;
-			else begin	
-			bandera <= ~bandera;
 			ctrl_maquina <= ctrl_maquina_next;
 			En_Lect_reg <= En_Lect_next;
 			Dato_Dir_reg <= Dato_Dir_next;
 			Tr_Lect_reg <= Tr_Lect_next;
-				if(bandera)begin
-					Seg_C_reg <= Seg_C_next;
-					Min_C_reg <= Min_C_next;
-					Hora_C_reg <= Hora_C_next;
-					Dia_reg <= Dia_next;
-					Mes_reg <= Mes_next;
-					Ano_reg <= Ano_next;
-				end
-				else begin
-					Seg_C_reg <= Seg_C_reg;
-					Min_C_reg <= Min_C_reg;
-					Hora_C_reg <= Hora_C_reg;
-					Dia_reg <= Dia_reg;
-					Mes_reg <= Mes_reg;
-					Ano_reg <= Ano_reg;
-			end end
+			Seg_C_reg <= Seg_C_next;
+			Min_C_reg <= Min_C_next;
+			Hora_C_reg <= Hora_C_next;
+			Dia_reg <= Dia_next;
+			Mes_reg <= Mes_next;
+			Ano_reg <= Ano_next;
+			end 
 	end
 /////////// Maquina de estados//////////////////
 always@*
@@ -142,7 +127,7 @@ always@*
                Seg_C_next = Seg_C_reg;
 					if (DIR) 
 						Dato_Dir_next = D_Seg;
-               else if (DAT)
+               else if (DAT2)
 						Seg_C_next = Dato_L;
 					else if (cambio_estado ) begin	
 						 ctrl_maquina_next = s3;
@@ -158,7 +143,7 @@ always@*
               Min_C_next = Min_C_reg;
 				  if (DIR) 
 						Dato_Dir_next = D_Min;
-               else if (DAT)
+               else if (DAT2)
 						Min_C_next = Dato_L ;
 					else if (cambio_estado ) begin	
 						 ctrl_maquina_next = s4;
@@ -173,7 +158,7 @@ always@*
                Hora_C_next = Hora_C_reg;
 					if (DIR) 
 						Dato_Dir_next = D_Hora;
-               else if (DAT)
+               else if (DAT2)
 						Hora_C_next = Dato_L;
 					else if (cambio_estado ) begin	 
 						 ctrl_maquina_next = s5;
@@ -188,7 +173,7 @@ always@*
 					if(En_clk) begin
 						if (DIR) 
 							Dato_Dir_next = 8'b00100100;
-						else if (DAT)
+						else if (DAT2)
 							Dia_next = Dato_L ;
 						else if (cambio_estado ) begin	 
 							 ctrl_maquina_next = s6;
@@ -206,7 +191,7 @@ always@*
 					if(En_clk) begin
 						if (DIR) 
 							Dato_Dir_next = 8'b00100101;
-						else if (DAT) 
+						else if (DAT2) 
 							Mes_next = Dato_L;
 						else if (cambio_estado ) begin	 
 							 ctrl_maquina_next = s7;
@@ -225,7 +210,7 @@ always@*
 				 if(En_clk) begin
 						if (DIR) 
 							Dato_Dir_next = 8'b00100110;
-						else if (DAT)
+						else if (DAT2)
 							Ano_next = Dato_L ;
 						else if (cambio_estado ) begin
 							 Term_Lect_reg = 1;	

@@ -24,7 +24,7 @@ output wire WRO,CSO,ADO,RDO, inout wire [7:0] Bus_Dato_Dir);
 
 tri [7:0]  Bus_Dato_Di;  
 wire Term_Esc,Term_Lect, Escribe, Lee,DAT1,DIR1,cambio_est,clk_timer,E_esc,E_Lect,En_tristate,Tr_Lect;
-wire Inicializador_MP;
+wire Inicializador_MP,DAT_LECT;
 reg Tr_L;
 wire[7:0] Dir_hora, Dir_minuto,Dir_segundo, segundo, minuto,hora,Mes_L,Seg_L,Min_L,Ano_L,Hora_L,Dia_L;	 
 wire [7:0]Dato_Le,Dato_Dire,Dir_L;
@@ -37,7 +37,7 @@ Maquina_Principal instance_name4 (   .T_Esc(Term_Esc),    .clk(CLK),    .reset(R
 	 
 Entradas_De_Control instance_name (    .clk(CLK),    .reset(Reset),    .En_Esc(E_esc),    .En_Lect(E_Lect), 
     .CS(CS),    .WR(WR),    .RD(RD),    .AD(AD),    .DIR1(DIR1),    .DAT1(DAT1),   .cambio_est(cambio_est),
-	 .En_tristate(En_tristate));
+	 .En_tristate(En_tristate),		.DAT_LECT(DAT_LECT));
 	 
 Maquina_Escritura instance_name2 (    .clk(CLK),     .reset(Reset),     .En_clk(clk_timer),     .DAT(DAT1), 
     .DIR(DIR1),     .Escritura(Escribe),     .D_Seg(Dir_segundo),     .D_Min(Dir_minuto),     .D_Hora(Dir_hora), 
@@ -49,7 +49,7 @@ Maquina_Lectura instance_name3 (    .clk(CLK),     .reset(Reset),     .DAT(DAT1)
     .En_clk(clk_timer),     .Lectura(Lee),     .cambio_estado(cambio_est),     .D_Seg(Dir_segundo), 
     .D_Min(Dir_minuto),   .D_Hora(Dir_hora),    .Seg_L(Seg_L),    .Min_L(Min_L),    .Hora_L(Hora_L),    
 	 .Ano_L(Ano_L),    .Mes_L(Mes_L),     .Dia_L(Dia_L),     .Term_Lect(Term_Lect),     .E_Lect(E_Lect),   
-	 .Dir_L(Dir_L),		.Dato_L(Dato_Le), 	.Tr_Lect(Tr_Lect) );
+	 .Dir_L(Dir_L),		.Dato_L(Dato_Le), 	.Tr_Lect(Tr_Lect), 		.DAT2(DAT_LECT) );
 assign WRO = WR;
 assign CSO = CS;
 assign ADO = AD;

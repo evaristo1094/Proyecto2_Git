@@ -18,7 +18,7 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Entradas_De_Control(input wire clk, reset,En_Esc,En_Lect,output wire CS, WR,RD,AD, DIR1, DAT1, 
+module Entradas_De_Control(input wire clk, reset,En_Esc,En_Lect,output wire CS, WR,RD,AD, DIR1, DAT1,DAT_LECT ,
 cambio_est,En_tristate
     );
 localparam inicio = 2;  // tiempo que tarda despues de entrada a cada estado para realizar la escritura determinada
@@ -36,9 +36,10 @@ reg [6:0] ctrl_count_reg,ctrl_count_next;
 reg CS_reg, WR_reg,AD_reg,CS_next, WR_next,AD_next,RD_reg,RD_next;
 // status signal
 reg DIR_reg, DAT_reg,DIR_next, DAT_next,cambio_estado_reg, cambio_estado_next;
+reg DAT_LECT_reg,DAT_LECT_next;
 reg En_tristate_reg,En_tristate_next;
 // creacion de los registros a utlizar para controlar las variables
-always @( posedge clk, posedge reset)
+always @( posedge clk, posedge reset)	begin
 	if (reset)begin
 			ctrl_count_reg <= 0;
 			CS_reg <= 1;
@@ -48,9 +49,9 @@ always @( posedge clk, posedge reset)
 			DIR_reg <= 0;
 			DAT_reg <= 0;
 			cambio_estado_reg <=0;
+			DAT_LECT_reg <=0;
 			En_tristate_reg <=0;
-			
-	end
+				end
 	else begin
 			ctrl_count_reg <= ctrl_count_next;
 			CS_reg <= CS_next;
@@ -59,8 +60,10 @@ always @( posedge clk, posedge reset)
 			AD_reg <= AD_next;
 			DIR_reg <= DIR_next;
 			DAT_reg <= DAT_next;
+			DAT_LECT_reg <= DAT_LECT_next;
 			cambio_estado_reg <= cambio_estado_next;
 			En_tristate_reg <= En_tristate_next;
+			end
 	end
 ///// Condicion para avanzar el contador que generara las se;ales de control///////////////	
 always @( posedge clk, posedge reset) begin
@@ -130,6 +133,14 @@ always @( posedge clk, posedge reset) begin
 				DAT_next = 1'b0;
 			end
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
+	always@*
+			begin
+			if (ctrl_count_reg >=(inicio + TA_Ds  + Tcs + Tw  + Tcs  - Tdw ) &&	ctrl_count_reg<=(inicio + TA_Ds  + Tcs + Tw + Tcs + Tdh))
+				DAT_LECT_next = 1'b1;
+			else 
+				DAT_LECT_next = 1'b0;
+			end
+////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
 	always@* 
 		begin
 		if (ctrl_count_reg >= (inicio + TA_Ds + Tcs + Tw + Tcs + Tdh) && ctrl_count_reg <= (inicio + TA_Ds  + Tcs + Tw  + Tcs  + Tdh + 1) )
@@ -164,6 +175,7 @@ always @( posedge clk, posedge reset) begin
 	assign RD = RD_reg;
 	assign DIR1 = DIR_reg;
 	assign DAT1 = DAT_reg;
+	assign DAT_LECT = DAT_LECT_reg;
 	assign cambio_est = cambio_estado_reg;
 	assign En_tristate = En_tristate_reg ;
 endmodule
