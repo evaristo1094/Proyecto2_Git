@@ -31,6 +31,7 @@ localparam [2:0] 	s0 = 3'b000, // Variables del control de la maquina de estados
 						s6 = 3'b110,
 						s7 = 3'b111;
 // contador de la maquina
+reg bandera;
 reg [2:0] ctrl_maquina, ctrl_maquina_next;
 reg [7:0] Dato_Dir_reg, Dato_Dir_next;
 reg [7:0] Seg_C_reg,Seg_C_next,Min_C_reg,Min_C_next,Hora_C_reg,Hora_C_next;
@@ -48,20 +49,35 @@ always @( posedge clk, posedge reset)
 			Min_C_reg <= 0;
 			Hora_C_reg <= 0;
 			Mes_reg <= 0;
+			bandera<=0;
 			Dia_reg <= 0;
 			Ano_reg <= 0;
 	end
 	else begin
+			if(DAT)
+				bandera <=0;
+			else begin	
+			bandera <= ~bandera;
 			ctrl_maquina <= ctrl_maquina_next;
 			En_Lect_reg <= En_Lect_next;
 			Dato_Dir_reg <= Dato_Dir_next;
-			Seg_C_reg <= Seg_C_next;
 			Tr_Lect_reg <= Tr_Lect_next;
-			Min_C_reg <= Min_C_next;
-			Hora_C_reg <= Hora_C_next;
-			Dia_reg <= Dia_next;
-			Mes_reg <= Mes_next;
-			Ano_reg <= Ano_next;
+				if(bandera)begin
+					Seg_C_reg <= Seg_C_next;
+					Min_C_reg <= Min_C_next;
+					Hora_C_reg <= Hora_C_next;
+					Dia_reg <= Dia_next;
+					Mes_reg <= Mes_next;
+					Ano_reg <= Ano_next;
+				end
+				else begin
+					Seg_C_reg <= Seg_C_reg;
+					Min_C_reg <= Min_C_reg;
+					Hora_C_reg <= Hora_C_reg;
+					Dia_reg <= Dia_reg;
+					Mes_reg <= Mes_reg;
+					Ano_reg <= Ano_reg;
+			end end
 	end
 /////////// Maquina de estados//////////////////
 always@*
@@ -76,7 +92,7 @@ always@*
 			Dia_next = Dia_reg;
 			Tr_Lect_next = Tr_Lect_reg;
 			Mes_next = Mes_reg;
-			Ano_next = Mes_reg;
+			Ano_next = Ano_reg;
       case (ctrl_maquina)
 			
             s0 : begin

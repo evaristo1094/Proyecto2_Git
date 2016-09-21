@@ -30,7 +30,7 @@ localparam Tw = 12; // tiempo de transferencia (tiempo que esta en alto el chip 
 localparam Tdw = 5; // tiempo que el dato debe estar presente durante el pulso negativo de WR(escribe)
 localparam Tdh = 1; // tiempo de hold(tiempo que debe permancecer el dato desp que cambia de 0 a 1 el WR)
 localparam TA_Ds = 1 ; // tmpo ants q debe estar en estd en bajo el A/D (ctrl de datos y dir) del CS
-localparam TA_Dt = 2; // tmpo despues q debe estar en estd en bajo el A/D (ctrl de datos y dir) del CS
+localparam TA_Dt = 1; // tmpo despues q debe estar en estd en bajo el A/D (ctrl de datos y dir) del CS
 reg [6:0] ctrl_count_reg,ctrl_count_next;
 //reg [7:0] Dato_Dir_reg, Dato_Dir_next;
 reg CS_reg, WR_reg,AD_reg,CS_next, WR_next,AD_next,RD_reg,RD_next;
@@ -116,7 +116,7 @@ always @( posedge clk, posedge reset) begin
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////
 	always@*
 			begin
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw - 2) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
+			if (ctrl_count_reg >=(inicio + TA_Ds + Tcs - Tdw - 2) &&	ctrl_count_reg <=(inicio + TA_Ds + Tcs + Tdh ))
 				DIR_next = 1'b1;
 			else 
 				DIR_next = 1'b0;
@@ -124,7 +124,7 @@ always @( posedge clk, posedge reset) begin
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
 	always@*
 			begin
-			if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw - 2) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh))
+			if (ctrl_count_reg >=(inicio + TA_Ds  + Tcs + Tw  + Tcs  - Tdw - 2) &&	ctrl_count_reg<=(inicio + TA_Ds  + Tcs + Tw + Tcs + Tdh))
 				DAT_next = 1'b1;
 			else 
 				DAT_next = 1'b0;
@@ -132,7 +132,7 @@ always @( posedge clk, posedge reset) begin
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
 	always@* 
 		begin
-		if (ctrl_count_reg >= (inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh) && ctrl_count_reg <= (inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh + 1) )
+		if (ctrl_count_reg >= (inicio + TA_Ds + Tcs + Tw + Tcs + Tdh) && ctrl_count_reg <= (inicio + TA_Ds  + Tcs + Tw  + Tcs  + Tdh + 1) )
 			cambio_estado_next = 1;
 		else 
 			cambio_estado_next = 0;
@@ -141,7 +141,7 @@ always @( posedge clk, posedge reset) begin
 	always@*
 		begin 
 			if (En_Esc)  begin
-				if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh ))
+				if (ctrl_count_reg >=(inicio + TA_Ds + Tf +Tr + Tcs + Tw + Tf + Tcs + Tr - Tdw ) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf + Tr + Tcs + Tw + Tf + Tcs + Tr + Tdh ))
 					En_tristate_next = 1;
 				else if (ctrl_count_reg >=(inicio + TA_Ds + Tf + Tr + Tcs - Tdw ) &&	ctrl_count_reg <=(inicio + TA_Ds + Tf +Tr+ Tcs + Tdh ))
 					En_tristate_next = 1;
@@ -167,3 +167,5 @@ always @( posedge clk, posedge reset) begin
 	assign cambio_est = cambio_estado_reg;
 	assign En_tristate = En_tristate_reg ;
 endmodule
+///////////// si no sirve por el tiempo del dato leIdo, tengo que ca,biar las condiciones del DAT y del cambio de estado para
+///// el proceso de lectura
