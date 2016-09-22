@@ -18,9 +18,14 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Maquina_Lectura(input wire clk, reset, DAT,DIR, En_clk, Lectura,cambio_estado,DAT2, input wire [7:0] 
-D_Seg,D_Min,D_Hora, Dato_L, output wire [7:0] Seg_L,Min_L,Hora_L,Ano_L, Mes_L, Dia_L,
-output wire  Term_Lect,E_Lect,Tr_Lect, output wire[7:0] Dir_L  );
+module Maquina_Lectura(input wire clk, reset, 
+DAT,DIR,DAT2,cambio_estado, 	//entradas para controlar el envio de datos, vienen de entradas de control
+En_clk, Lectura, 					// senales de la maquina principal, la primera lectura del clk o timer, segunda habilita la lect
+input wire [7:0] D_Seg,D_Min,D_Hora, Dato_L,  						//entradas de direcciones de maquina principal y datos del RTC  
+output wire [7:0] Seg_LC,Min_LC,Hora_LC,Ano_LC, Mes_LC, Dia_LC,// salidas de los datos de lectura del clk
+Seg_LT,Min_LT,Hora_LT, 														 /// salidas de lectura del timer
+output wire  Term_Lect,E_Lect,Tr_Lect,clk_timerL, 					// senales de control para la maquina principal y la de control
+output wire[7:0] Dir_L  ); 													// direccion de lectura del timer
 
 localparam [2:0] 	s0 = 3'b000, // Variables del control de la maquina de estados
 						s1 = 3'b001,
@@ -32,12 +37,19 @@ localparam [2:0] 	s0 = 3'b000, // Variables del control de la maquina de estados
 						s7 = 3'b111;
 // contador de la maquina
 reg [2:0] ctrl_maquina, ctrl_maquina_next;
+
+///asignacion de registros auxiliares para cada salida del bloque///
+
+reg clk1_timer2,clk1_timer2_next;
 reg [7:0] Dato_Dir_reg, Dato_Dir_next;
 reg [7:0] Seg_C_reg,Seg_C_next,Min_C_reg,Min_C_next,Hora_C_reg,Hora_C_next;
+reg [7:0] Seg_T_reg,Seg_T_next,Min_T_reg,Min_T_next,Hora_T_reg,Hora_T_next;
 reg [7:0] Dia_reg, Dia_next,Mes_reg,Mes_next,Ano_reg,Ano_next;
 reg Term_Lect_reg,Tr_Lect_reg,Tr_Lect_next; 
 reg En_Lect_reg, En_Lect_next;
-// creacion de los registros a utlizar para controlar las variables
+
+// inicializacion y refresco de los registros a utlizar de las variables de salida
+
 always @( posedge clk, posedge reset)begin
 	if (reset)begin
 			ctrl_maquina <= 0;
@@ -47,9 +59,13 @@ always @( posedge clk, posedge reset)begin
 			Seg_C_reg <= 0;
 			Min_C_reg <= 0;
 			Hora_C_reg <= 0;
+			Seg_T_reg <= 0;
+			Min_T_reg <= 0;
+			Hora_T_reg <= 0;
 			Mes_reg <= 0;
 			Dia_reg <= 0;
 			Ano_reg <= 0;
+			clk1_timer2 <=0;
 	end
 	else begin
 			ctrl_maquina <= ctrl_maquina_next;
@@ -59,12 +75,18 @@ always @( posedge clk, posedge reset)begin
 			Seg_C_reg <= Seg_C_next;
 			Min_C_reg <= Min_C_next;
 			Hora_C_reg <= Hora_C_next;
+			Seg_T_reg <= Seg_T_next;
+			Min_T_reg <= Min_T_next;
+			Hora_T_reg <= Hora_T_next;
 			Dia_reg <= Dia_next;
 			Mes_reg <= Mes_next;
 			Ano_reg <= Ano_next;
+			clk1_timer2 <= clk1_timer2_next;
 			end 
 	end
+	
 /////////// Maquina de estados//////////////////
+
 always@*
        begin
         ctrl_maquina_next = ctrl_maquina;
@@ -73,26 +95,36 @@ always@*
 		  Seg_C_next = Seg_C_reg;
 			Min_C_next = Min_C_reg;
 			Hora_C_next = Hora_C_reg;
+			Seg_T_next = Seg_T_reg;
+			Min_T_next = Min_T_reg;
+			Hora_T_next = Hora_T_reg;
 			Term_Lect_reg = 0;
 			Dia_next = Dia_reg;
 			Tr_Lect_next = Tr_Lect_reg;
 			Mes_next = Mes_reg;
 			Ano_next = Ano_reg;
+			clk1_timer2_next = clk1_timer2;
       case (ctrl_maquina)
 			
+			
+					////////// Estado general, espera la senal de lectura para empezar el proceso////////////
+					
+					
             s0 : begin
-				////////// Estado general, espera la senal de lectura para empezar el proceso////////////
-						Dato_Dir_next = 8'b11111111;
+					Dato_Dir_next = 8'b11111111;
 				  if (Lectura) begin
 						Term_Lect_reg = 0;
                   ctrl_maquina_next = s1;
+						clk1_timer2_next = 0;
 						En_Lect_next = 1;end
                else 
 						ctrl_maquina_next = ctrl_maquina_next; 
                   En_Lect_next = 0;
 						end
-				s1 : begin
-			//////////// Estado de escritura del comando de transferencia del clock o el timer a la RAM
+
+			//////////// Estado de escritura del comando de transferencia del clock o el timer a la RAM			
+
+			s1 : begin
                if(En_clk) begin
 						if (DIR) 
 							Dato_Dir_next = 8'b11110001;
@@ -120,55 +152,75 @@ always@*
 							else begin
 								 En_Lect_next =  1;
 								ctrl_maquina_next = ctrl_maquina_next;  end							
-								end end
-             s2 : begin
-			//////////// Estado de lectura del dato de segundos, tanto del clock como del timer
-		//////////// Recibe de la maquina principal la direccion (clock o timer) donde lee y envia el valor a la salida	
+								end 
+					end
+								
+             	//////////// Estado de lectura del dato de segundos, tanto del clock como del timer
+		//////////// Recibe de la maquina principal la direccion (clock o timer) donde lee y envia el valor a la salida
+		
+				 s2 : begin
+			
                Seg_C_next = Seg_C_reg;
 					if (DIR) 
 						Dato_Dir_next = D_Seg;
-               else if (DAT2)
-						Seg_C_next = Dato_L;
+               else if (DAT2) begin 
+						if(En_clk)
+							Seg_C_next = Dato_L;
+						else
+							Seg_T_next = Dato_L;end
 					else if (cambio_estado ) begin	
 						 ctrl_maquina_next = s3;
 						  En_Lect_next = 0; end
 					else begin
 						 En_Lect_next =  1;
                   ctrl_maquina_next = ctrl_maquina_next;  end
-						end
-				 s3 : begin
-			
+				end
+						
 			//////////// Estado de lectura del dato de minutosos, tanto del clock como del timer
 		//////////// Recibe de la maquina principal la direccion (clock o timer) donde lee y envia el valor a la salida	 
-              Min_C_next = Min_C_reg;
+      	
+				s3 : begin
+			
+			        Min_C_next = Min_C_reg;
 				  if (DIR) 
 						Dato_Dir_next = D_Min;
-               else if (DAT2)
-						Min_C_next = Dato_L ;
+               else if (DAT2) begin 
+						if(En_clk)
+							Min_C_next = Dato_L;
+						else
+							Min_T_next = Dato_L;end
 					else if (cambio_estado ) begin	
 						 ctrl_maquina_next = s4;
 						  En_Lect_next = 0; end
 					else begin
 						 En_Lect_next = 1;
                   ctrl_maquina_next = ctrl_maquina_next;  end	
-						end
-				 s4 : begin
-			//////////// Estado de lectura del dato de hora, tanto del clock como del timer
+				end
+				
+		//////////// Estado de lectura del dato de hora, tanto del clock como del timer
 		//////////// Recibe de la maquina principal la direccion (clock o timer) donde lee y envia el valor a la salida
-               Hora_C_next = Hora_C_reg;
+  
+				s4 : begin
+			             Hora_C_next = Hora_C_reg;
 					if (DIR) 
 						Dato_Dir_next = D_Hora;
-               else if (DAT2)
-						Hora_C_next = Dato_L;
+               else if (DAT2)	 begin 
+						if(En_clk)
+							Hora_C_next = Dato_L;
+						else
+							Hora_T_next = Dato_L;end
 					else if (cambio_estado ) begin	 
 						 ctrl_maquina_next = s5;
 						  En_Lect_next = 0; end
 					else begin
 						 En_Lect_next =  1;
                   ctrl_maquina_next = ctrl_maquina_next;  end	
-						end
-				 s5 : begin
-			//////////// Estado de lectura del dato de dia del y envia el valor a la salida		 
+				end
+			
+			//////////// Estado de lectura del dato de dia del y envia el valor a la salida
+			
+			s5 : begin
+	 
                Dia_next = Dia_reg;
 					if(En_clk) begin
 						if (DIR) 
@@ -184,9 +236,13 @@ always@*
 					else begin	 
 							 ctrl_maquina_next = s6;
 							  En_Lect_next = 0;
-							  end		end
+							  end		
+				end
+				 
+				 //////////// Estado de lectura del dato de mes del y envia el valor a la salida	
+				 
 				 s6 : begin
-			//////////// Estado de lectura del dato de mes del y envia el valor a la salida	
+			
 					Mes_next = Mes_reg;
 					if(En_clk) begin
 						if (DIR) 
@@ -203,9 +259,13 @@ always@*
 					else begin	 
 						 ctrl_maquina_next = s7;
 						  En_Lect_next = 0;
-						  end end
-				 s7 : begin
-			//////////// Estado de lectura del dato de ano del y envia el valor a la salida	
+						  end 
+					end
+
+	//////////// Estado de lectura del dato de ano del y envia el valor a la salida	
+	
+				s7 : begin
+		
 				 Ano_next = Ano_reg;
 				 if(En_clk) begin
 						if (DIR) 
@@ -213,8 +273,9 @@ always@*
 						else if (DAT2)
 							Ano_next = Dato_L ;
 						else if (cambio_estado ) begin
-							 Term_Lect_reg = 1;	
-							 ctrl_maquina_next = s0;
+							 Term_Lect_reg = 0;	
+							 ctrl_maquina_next = s1;
+							 clk1_timer2_next = 1;
 							  En_Lect_next = 0; end
 						else begin
 							 En_Lect_next =  1;
@@ -222,23 +283,32 @@ always@*
 							end 
 					else begin	 
 						 ctrl_maquina_next = s0;
+						 clk1_timer2_next = 0;
 						 Term_Lect_reg = 1;	
 						  En_Lect_next = 0;
 						  end	
 					end
+					
+					//////////Estado de default
+					
 					default : ctrl_maquina_next = s0;
          endcase
 		end
 	//////////////// Asignacion de las variables de salida//////////////	
-	assign Seg_L = Seg_C_reg;
-	assign Min_L = Min_C_reg;
-	assign Hora_L = Hora_C_reg;
-	assign Dia_L = Dia_reg;
-	assign Mes_L = Mes_reg;
-	assign Ano_L = Ano_reg;
+	assign Seg_LC = Seg_C_reg;
+	assign Min_LC = Min_C_reg;
+	assign Hora_LC = Hora_C_reg;
+	assign Seg_LT = Seg_T_reg;
+	assign Min_LT = Min_T_reg;
+	assign Hora_LT = Hora_T_reg;
+	assign Dia_LC = Dia_reg;
+	assign Mes_LC = Mes_reg;
+	assign Ano_LC = Ano_reg;
 	assign Dir_L = Dato_Dir_reg;
 	assign E_Lect = En_Lect_reg;
 	assign Tr_Lect = Tr_Lect_reg;
+	
  /// Bandera que indica que se termino el proceso de escritura	
 	assign Term_Lect = Term_Lect_reg; 
+	assign clk_timerL = clk1_timer2;
 endmodule 

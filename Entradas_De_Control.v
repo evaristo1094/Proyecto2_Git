@@ -18,9 +18,11 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Entradas_De_Control(input wire clk, reset,En_Esc,En_Lect,output wire CS, WR,RD,AD, DIR1, DAT1,DAT_LECT ,
-cambio_est,En_tristate
-    );
+module Entradas_De_Control(input wire clk, reset,
+En_Esc,En_Lect,															//// Entradas para habilitar cuentas y salidas
+output wire CS, WR,RD,AD, DIR1, DAT1,DAT_LECT,cambio_est,	///Salidas que controlaran los tiempo de manejo del RTC
+En_tristate	 );															/// Activacion del triestato para el envio de los datos
+   
 localparam inicio = 2;  // tiempo que tarda despues de entrada a cada estado para realizar la escritura determinada
 localparam Tcs = 5; // tiempo minimo del chip select en bajo (50, para escribir)
 localparam Tf = 0 ; // tiempo de bajada del flanco (fall) 
@@ -31,14 +33,17 @@ localparam Tdw = 5; // tiempo que el dato debe estar presente durante el pulso n
 localparam Tdh = 1; // tiempo de hold(tiempo que debe permancecer el dato desp que cambia de 0 a 1 el WR)
 localparam TA_Ds = 1 ; // tmpo ants q debe estar en estd en bajo el A/D (ctrl de datos y dir) del CS
 localparam TA_Dt = 1; // tmpo despues q debe estar en estd en bajo el A/D (ctrl de datos y dir) del CS
+
+////Contador de la maquina///
 reg [6:0] ctrl_count_reg,ctrl_count_next;
-//reg [7:0] Dato_Dir_reg, Dato_Dir_next;
+
+// Registros que se utilizaran para guardar y luego transmitir a las salidas
 reg CS_reg, WR_reg,AD_reg,CS_next, WR_next,AD_next,RD_reg,RD_next;
-// status signal
 reg DIR_reg, DAT_reg,DIR_next, DAT_next,cambio_estado_reg, cambio_estado_next;
 reg DAT_LECT_reg,DAT_LECT_next;
 reg En_tristate_reg,En_tristate_next;
-// creacion de los registros a utlizar para controlar las variables
+
+// inicializacion y refrezco de los registros a utlizar de las variables salida
 always @( posedge clk, posedge reset)	begin
 	if (reset)begin
 			ctrl_count_reg <= 0;
@@ -65,7 +70,9 @@ always @( posedge clk, posedge reset)	begin
 			En_tristate_reg <= En_tristate_next;
 			end
 	end
-///// Condicion para avanzar el contador que generara las se;ales de control///////////////	
+	
+///// Condicion para avanzar el contador que generara las senales de control///////////////	
+
 always @( posedge clk, posedge reset) begin
 		if (reset)
 			ctrl_count_next <= 0;
@@ -75,7 +82,9 @@ always @( posedge clk, posedge reset) begin
 			ctrl_count_next <= 0;
 		end	
 		
+		
 ////////// Creacion de los pulsos de la senal CS para el RTC///////////////	
+
 	always@*
 			begin
 			if (ctrl_count_reg >=(inicio+TA_Ds) && ctrl_count_reg<=( inicio + TA_Ds + Tf + Tr + Tcs))
@@ -85,7 +94,9 @@ always @( posedge clk, posedge reset) begin
 			else 
 				CS_next = 1'b1;
 			end
+			
 ////////// Creacion de los pulsos de la senal WR para el RTC///////////////
+
 	always@*
 			begin
 			if (ctrl_count_reg >=(inicio+ TA_Ds) &&	ctrl_count_reg<=(inicio + TA_Ds + Tf +Tr+ Tcs))
@@ -97,7 +108,9 @@ always @( posedge clk, posedge reset) begin
 					WR_next = 1'b1; end
 			else WR_next = 1'b1;
 			end
-////////// Creacion de los pulsos de la senal WR para el RTC///////////////
+			
+////////// Creacion de los pulsos de la senal RD para el RTC///////////////
+
 	always@*
 			begin
 			if(En_Lect) begin 
@@ -107,7 +120,9 @@ always @( posedge clk, posedge reset) begin
 					RD_next = 1'b1; end
 			else RD_next = 1'b1;
 			end
+			
 ////////// Creacion de los pulsos de la senal AD para el RTC///////////////
+
 	always@*
 			begin
 			if (ctrl_count_reg >=(inicio) && ctrl_count_reg<=(inicio + TA_Ds + Tf  + Tcs + TA_Dt + Tr))
@@ -117,6 +132,7 @@ always @( posedge clk, posedge reset) begin
 			end
 
 ////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////
+
 	always@*
 			begin
 			if (ctrl_count_reg >=(inicio + TA_Ds + Tcs - Tdw - 2) &&	ctrl_count_reg <=(inicio + TA_Ds + Tcs + Tdh ))
@@ -124,7 +140,9 @@ always @( posedge clk, posedge reset) begin
 			else 
 				DIR_next = 1'b0;
 			end
-////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
+			
+////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////	
+		
 	always@*
 			begin
 			if (ctrl_count_reg >=(inicio + TA_Ds  + Tcs + Tw  + Tcs  - Tdw - 2) &&	ctrl_count_reg<=(inicio + TA_Ds  + Tcs + Tw + Tcs + Tdh))
@@ -132,7 +150,9 @@ always @( posedge clk, posedge reset) begin
 			else 
 				DAT_next = 1'b0;
 			end
-////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
+			
+////////// Creacion de una bandera que habilitara un la entrada de datos de la lectura///////////////	
+		
 	always@*
 			begin
 			if (ctrl_count_reg >=(inicio + TA_Ds  + Tcs + Tw  + Tcs  - Tdw ) &&	ctrl_count_reg<=(inicio + TA_Ds  + Tcs + Tw + Tcs + Tdh))
@@ -140,7 +160,9 @@ always @( posedge clk, posedge reset) begin
 			else 
 				DAT_LECT_next = 1'b0;
 			end
-////////// Creacion de una bandera que habilitara un proceso en las maquinas de esc y lect///////////////			
+			
+////////// Creacion de una bandera que habilitara el cambio de estado en las maquinas de esc y lect//////////			
+	
 	always@* 
 		begin
 		if (ctrl_count_reg >= (inicio + TA_Ds + Tcs + Tw + Tcs + Tdh) && ctrl_count_reg <= (inicio + TA_Ds  + Tcs + Tw  + Tcs  + Tdh + 1) )
@@ -148,7 +170,9 @@ always @( posedge clk, posedge reset) begin
 		else 
 			cambio_estado_next = 0;
 		end
+		
 ////////// Creacion de senal de Eneable del tri estado del bus de datos ////////////////	
+
 	always@*
 		begin 
 			if (En_Esc)  begin
@@ -168,6 +192,7 @@ always @( posedge clk, posedge reset) begin
 			else 	
 					En_tristate_next = 0;		
 		end		
+		
 // asignacion de las senales de salida y  banderas correspondientes
 	assign CS = CS_reg;
 	assign WR = WR_reg;
@@ -179,5 +204,3 @@ always @( posedge clk, posedge reset) begin
 	assign cambio_est = cambio_estado_reg;
 	assign En_tristate = En_tristate_reg ;
 endmodule
-///////////// si no sirve por el tiempo del dato leIdo, tengo que ca,biar las condiciones del DAT y del cambio de estado para
-///// el proceso de lectura

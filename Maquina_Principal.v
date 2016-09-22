@@ -18,20 +18,39 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Maquina_Principal(input wire T_Esc, clk, reset, T_Lect,C_T,Esc_Lee, Btn_Inicializa, input wire [7:0] clk_seg,
-clk_min,clk_hora,tim_seg,tim_min,tim_hora, output wire Escribe, Lee,	clk_timer, Inicializador_MP,
-output reg [7:0] segundo, minuto, hora,Dir_hora,Dir_minuto,Dir_segundo
+module Maquina_Principal(input wire  clk, reset, 
+T_Esc, T_Lect,			//banderas para indicarle a la maquina que se termino de escribir o leer
+C_T,						//switch q indica a la maquina si esta escribiendo timer o clk, viene de un swt del top
+clk_tim,					//bandera q indica a la maquina si esta leyendo timer o clk, viene de la maq de lect
+Esc_Lee,					//boton para saber si escribe o se mantiene leyendo, un btn del top 
+Btn_Inicializa, 		// boton para realizar la inicializacion del RTC 
+input wire [7:0] clk_seg,clk_min,clk_hora, 	//datos que vienen del mod en el que el usuario ingresa los valores
+output wire Escribe, Lee,	// banderas que van a las maq de esc y lect respectivamente, son enable del proceso
+clk_timer, 						// bandera que va a esc y lect para indicar si el proceso es del timer o del clock
+Inicializador_MP, 			// Bandera para realizar la inicializacion, va a escritura
+output reg [7:0] segundo, minuto, hora,	// datos de escritura del clk
+Dir_hora,Dir_minuto,Dir_segundo				// direcciones para la escritura del clk y timer
     );
-localparam [1:0] 	s0 = 2'b00, // Variables del control de la maquina de estados
+
+/// Variables del control de la maquina de estados///
+	 
+localparam [1:0] 	s0 = 2'b00, 
 						s1 = 2'b01,
 						s2 = 3'b10,
 						s3 = 2'b11;
+
+/// contador del control de la maquina de estados///		
+
+reg [1:0] ctrl_maquina, ctrl_maquina_next;				
+
+/// creacion de registros para las variables de salida ///////
 		
-reg [1:0] ctrl_maquina, ctrl_maquina_next;						
 reg E_Esc_reg,E_Esc_next,Inicializador_MP_reg,Inicializador_MP_next;
 reg E_Lect_reg, E_Lect_next,clk_timer_next,clk_timer_reg;
 reg Bandera_escritura,Bandera_escritura_next;
-// creacion de los registros a utlizar para controlar las variables
+
+// inicializacion de los registros a utlizar de las variables
+
 always @( posedge clk, posedge reset)
 	if (reset)begin
 			ctrl_maquina <= 0;
@@ -49,7 +68,9 @@ always @( posedge clk, posedge reset)
 			Inicializador_MP_reg <= Inicializador_MP_next;
 			Bandera_escritura <=Bandera_escritura_next;
 	end
+	
 // Maquina de estados
+
 always@*
        begin
         ctrl_maquina_next = ctrl_maquina;
@@ -66,9 +87,11 @@ always@*
 		  Bandera_escritura_next = Bandera_escritura;
 	//////////////////// Maquina de estados ////////////////////////	 
       case (ctrl_maquina)
-            s0 : begin
-				// Estado inicial, si se activa la opcion de escritura va al esta de escritura, 
-				// sino se mentiene leyendo datos
+           
+	/////Estado inicial, si se activa la opcion de escritura va al estd de escr, sino se mentiene leyendo datos
+							
+			  s0 : begin
+			
 					if (Btn_Inicializa) begin
 						Inicializador_MP_next = 1;
 						E_Esc_next = 0;
@@ -83,19 +106,22 @@ always@*
 						 E_Lect_next = E_Lect_next;
 						 Inicializador_MP_next = 0;
                    ctrl_maquina_next = s2; end
-						end
-				s1 : begin
-				//Estado de escritura, hay dos posibles datos a escribir, los del timer o los del Clock
-				//C_T si es verdadera escribe en clock, sino en timer.. Esta determina los valores a enviar a escribir
-				// los del timer o los del clock, envia direcciones de min, hora, seg y datos de los mismos
-				// los otros datos y direcciones ingresan directamente a la de escritura o son fijos ya.						
+				end
+						
+		//Estado de escritura, hay dos posibles datos a escribir, los del timer o los del Clock
+		//C_T si es verdadera escribe en clock, sino en timer.. Esta determina los valores a enviar a escribir
+		// los del timer o los del clock, envia direcciones de min, hora, seg y datos de los mismos
+		// los otros datos y direcciones ingresan directamente a la de escritura o son fijos ya.	
+		
+			s1 : begin
+								
 						if (~T_Esc) begin
 							E_Esc_next = 1;
 							if (C_T) begin
 								//Datos y direcciones del clock
 								E_Esc_next = 1;
 								clk_timer_next = 1; // Variable que indica que esta escribiendo
-								segundo = clk_seg;   //Datos RAM Clock
+								segundo = clk_seg;   //Datos a enviar a la RAM Clock
 								minuto = clk_min;
 								hora = clk_hora;
 								Dir_hora = 8'b00100011;  //Dir RAM Clock
@@ -105,10 +131,10 @@ always@*
 							else begin
 								//Datos y direcciones del timer
 								clk_timer_next = 0;
-								segundo = tim_seg;    //Datos RAM Clock
-								minuto = tim_min;
+								segundo = 8'b00000000;    //Datos a enviar a la  RAM Clock
+								minuto = 8'b00000000;
 								E_Esc_next = 1;
-								hora = tim_hora;
+								hora = 8'b00000000;
 								Dir_hora = 8'b01000011;  //Dir RAM timer
 								Dir_minuto = 8'b01000010;
 								Dir_segundo = 8'b01000001;
@@ -119,15 +145,18 @@ always@*
 							 E_Lect_next = 1;
 							 E_Esc_next = 0;
 							end	
-							end
-				s2: begin
+					end
+							
 			//Estado de lectura, hay dos posibles datos a leer, los del timer o los del Clock
-				//C_T si es verdadera lee en clock, sino en timer.. Esta determina las direcciones a leer
-				// los del timer o los del clock, envia direcciones de min, hora, seg 
-				// las otras direcciones ingresan directamente a la de lectura o son fijos ya.	
+			//C_T si es verdadera lee en clock, sino en timer.. Esta determina las direcciones a leer
+			// los del timer o los del clock, envia direcciones de min, hora, seg 
+			// las otras direcciones ingresan directamente a la de lectura o son fijos ya.
+			
+			s2: begin
+		
 					E_Lect_next = 1;
 					if (~T_Lect) begin
-						if (C_T) begin
+						if (~clk_tim) begin
 							clk_timer_next = 1;  // Variable que indica que variables esta leyendo
 							Dir_hora = 8'b00100011; //Dir RAM Clock
 							Dir_minuto = 8'b00100010;
@@ -148,12 +177,17 @@ always@*
 						 Bandera_escritura_next = 0;
 						 E_Lect_next = 0;
 						end	
-						end
-					s3: ctrl_maquina_next = s0;	
+				end
+						
+				/// estado no usado	
+				
+					s3: ctrl_maquina_next = s0;
+			
+			/// estado de default
 				default : ctrl_maquina_next = s0;	
 			endcase
 		end
-  //////////// Variables de control de las maquinas de escritura y lectura/////////////
+  //////////// asignacio de las variables de control de las maquinas de escritura y lectura/////////////
 		assign Lee = E_Lect_reg;   
 		assign Escribe = E_Esc_reg;
 		assign clk_timer = clk_timer_reg;

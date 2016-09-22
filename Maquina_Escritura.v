@@ -18,10 +18,14 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Maquina_Escritura(input wire clk, reset, En_clk, DAT,DIR,Escritura, cambio_estado,Inicializar,doce_24C, 
+module Maquina_Escritura(input wire clk, reset,
+En_clk, 			// habilitador de escritura de timer o clock, viene de la maquina principal
+DAT,DIR,Escritura, cambio_estado,Inicializar,doce_24C, 
 input wire [7:0] Seg,Min,Hora,Ano, Mes, Dia,D_Seg,D_Min,D_Hora,output wire  Term_Esc,E_esc, output wire [7:0] Dato_Dire );
 
-localparam [3:0] 	s0 = 4'b0000, // Variables del control de la maquina de estados
+// Variables del control de la maquina de estados
+
+localparam [3:0] 	s0 = 4'b0000, 
 						s1 = 4'b0001,
 						s2 = 4'b0010,
 						s3 = 4'b0011,

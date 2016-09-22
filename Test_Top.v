@@ -34,9 +34,6 @@ module Test_Top;
 	reg [7:0] clk_seg1;
 	reg [7:0] clk_min1;
 	reg [7:0] clk_hora1;
-	reg [7:0] tim_seg1;
-	reg [7:0] tim_min1;
-	reg [7:0] tim_hora1;
 	reg [7:0] Mes1;
 	reg [7:0] Dia1;
 	reg [7:0] Ano1;
@@ -48,6 +45,9 @@ module Test_Top;
 	wire [7:0] Seg2;
 	wire [7:0] Min2;
 	wire [7:0] Hora2;
+	wire [7:0] Seg2_T;
+	wire [7:0] Min2_T;
+	wire [7:0] Hora2_T;
 	wire WRO;
 	wire CSO;
 	wire ADO;
@@ -67,9 +67,6 @@ module Test_Top;
 		.clk_seg1(clk_seg1), 
 		.clk_min1(clk_min1), 
 		.clk_hora1(clk_hora1), 
-		.tim_seg1(tim_seg1), 
-		.tim_min1(tim_min1), 
-		.tim_hora1(tim_hora1), 
 		.Mes1(Mes1), 
 		.Dia1(Dia1), 
 		.Ano1(Ano1), 
@@ -79,6 +76,9 @@ module Test_Top;
 		.Seg2(Seg2), 
 		.Min2(Min2), 
 		.Hora2(Hora2), 
+		.Seg2_T(Seg2_T), 
+		.Min2_T(Min2_T), 
+		.Hora2_T(Hora2_T), 
 		.WRO(WRO), 
 		.CSO(CSO), 
 		.ADO(ADO), 
@@ -95,9 +95,6 @@ module Test_Top;
 		clk_seg1 = 0;
 		clk_min1 = 0;
 		clk_hora1 = 0;
-		tim_seg1 = 0;
-		tim_min1 = 0;
-		tim_hora1 = 0;
 		Btn_Limpiar = 0;
 		doce_24 = 0;
 		Mes1 = 0;
@@ -128,9 +125,6 @@ module Test_Top;
 		#4000;
 		doce_24 = 1;
 		CT = 0;
-		tim_seg1 = 2;
-		tim_min1 = 3;
-		tim_hora1 = 4;
 		Mes1 = 5;
 		Dia1 = 6;
 		Ano1 = 10;
