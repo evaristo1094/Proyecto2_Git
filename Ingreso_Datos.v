@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date:    23:24:29 09/15/2016 
+// Create Date:    16:54:03 09/22/2016 
 // Design Name: 
-// Module Name:    Ingreso_Datos 
+// Module Name:    Ingreso_datos 
 // Project Name: 
 // Target Devices: 
 // Tool versions: 
@@ -19,8 +19,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module Ingreso_Datos(
-	input wire  clk,	reset,	 C_T,	disminuye,	aumenta,		escribe,	 corre_der,	corre_izq,	 doce_24,
-	output wire [7:0] seg_C, min_C, hora_C, dia, mes, ano, seg_T, min_T, hora_T
+	input wire  clk, reset,	 C_T,	disminuye,	aumenta,		escribe,	 corre_der,	corre_izq, doce_24,
+	output wire [7:0] seg_C, min_C, hora_C, dia, mes, ano, seg_T, min_T, hora_T,
+	output reg cursor_seg, cursor_min, cursor_hora, cursor_mes, cursor_dia, cursor_ano,
+	cursor_T_seg, cursor_T_min, cursor_T_hora
 	    );
 
 	localparam [2:0] s0 = 3'b000,           
@@ -111,6 +113,15 @@ module Ingreso_Datos(
 		hora_T_D_next = hora_T_D_reg;
 		hora_T_U_next = hora_T_U_reg;
 		contador_maquina_next = contador_maquina_reg;
+		cursor_seg = 0;
+		cursor_min = 0;
+		cursor_hora = 0;
+		cursor_dia = 0;
+		cursor_mes = 0;
+		cursor_ano = 0;
+		cursor_T_seg = 0;
+		cursor_T_min = 0;
+		cursor_T_hora = 0;
 		
 //***********************ESTADO S0****************************		
 		
@@ -120,7 +131,16 @@ module Ingreso_Datos(
 					contador_maquina_next = s1;
             else
 					contador_maquina_next = contador_maquina_next;
-					end
+					cursor_seg = 0;
+					cursor_min = 0;
+					cursor_hora = 0;
+					cursor_dia = 0;
+					cursor_mes = 0;
+					cursor_ano = 0;
+					cursor_T_seg = 0;
+					cursor_T_min = 0;
+					cursor_T_hora = 0;
+			end
 					
 //***********************ESTADO S1 SEGUNDOS ****************************						
 					
@@ -169,8 +189,7 @@ module Ingreso_Datos(
 								seg_C_U_next = seg_C_U_next - 1;
 							end
 						end
-											
-						
+				
 					else begin 
 						if  (seg_T_D_next == 4'b0000 && seg_T_U_next == 4'b0000 )begin
 						 seg_T_D_next = 4'b0101;
@@ -185,19 +204,36 @@ module Ingreso_Datos(
 							end
 						end
 					end
-									
+							
 				else if (corre_der) 
 					contador_maquina_next = s2;
 				else if (corre_izq)
 					contador_maquina_next = s6;
-				else contador_maquina_next = contador_maquina_next;
+				else if (~escribe)
+					contador_maquina_next = s0;	
+				else begin 
+					contador_maquina_next = contador_maquina_next;
+					if(C_T)begin
+						cursor_seg = 1;
+						cursor_min = 0;
+						cursor_T_seg = 0;
+						cursor_T_min = 0;
+						cursor_ano = 0; end
+					else begin
+						cursor_seg = 0;
+						cursor_min = 0;
+						cursor_T_seg = 1;
+						cursor_T_min = 0;
+						cursor_ano = 0;					
 					end 
-				
+				end
+				end
 //********************ESTADO S2 MINUTO**********************					
 						
 			s2: begin
 				if(aumenta) begin
 					if (C_T) begin
+						cursor_T_hora = 0;
 						if  (min_C_D_next == 4'b0101 && min_C_U_next == 4'b1001 )begin
 						 min_C_D_next = 0;
 						 min_C_U_next = 0;
@@ -262,119 +298,138 @@ module Ingreso_Datos(
 					contador_maquina_next = s3;
 				else if (corre_izq)
 					contador_maquina_next = s1;
-					else contador_maquina_next = contador_maquina_next;
+				else if (~escribe)
+					contador_maquina_next = s0;	
+				else begin 
+					contador_maquina_next = contador_maquina_next;
+					if(C_T)begin
+						cursor_seg = 0;
+						cursor_min = 1;
+						cursor_T_seg = 0;
+						cursor_T_min = 0;
+						cursor_hora = 0;
+						cursor_T_hora = 0;	 end
+					else begin
+						cursor_seg = 0;
+						cursor_min = 0;
+						cursor_T_seg = 0;
+						cursor_T_min = 1;
+						cursor_hora = 0;
+						cursor_T_hora = 0;					
 					end 
+				end
+				end
 	
 //*************ESTADO S3 HORA**********************************
 //*********************************12	
 			
 			s3: begin
-				if (12_24)
 					if(aumenta) begin
-						if (C_T) begin
-							if  (hora_C_D_next == 4'b0001 && hora_C_U_next == 4'b0010 )begin
-							 hora_C_D_next = 0;
-							 hora_C_U_next = 4'b0001;
-							 end
-							else	begin
-								if (hora_C_U_next == 4'b1001)begin
-								hora_C_D_next = hora_C_D_next + 1;
-								hora_C_U_next = 0; end
-								else 
-									hora_C_U_next = hora_C_U_next + 1;
+	//**********************12*******************************************			
+						if (doce_24) begin
+							if (C_T) begin
+								if  (hora_C_D_next >= 4'b0001 && hora_C_U_next >= 4'b0010 )begin
+								 hora_C_D_next = 0;
+								 hora_C_U_next = 4'b0001;
+								 end
+								else	begin
+									if (hora_C_U_next == 4'b1001)begin
+									hora_C_D_next = hora_C_D_next + 1;
+									hora_C_U_next = 0; end
+									else 
+										hora_C_U_next = hora_C_U_next + 1;
+									end
 								end
-							end
-							
-						else begin 
-							if  (hora_T_D_next == 4'b0001 && hora_T_U_next == 4'b0010 )begin
-							 hora_T_D_next = 0;
-							 hora_T_U_next = 4'b0001;
-							 end
-							else	begin
-								if (hora_T_U_next == 4'b1001)begin
-								hora_T_D_next = hora_T_D_next + 1;
-								hora_T_U_next = 0; end
-								else 
-									hora_T_U_next = hora_T_U_next + 1;
-								end
-							end
-						end
-							
-					else if(disminuye) begin
-						if (C_T) begin
-							if  (hora_C_D_next == 4'b0000 && hora_C_U_next == 4'b0000 )begin
-							 hora_C_D_next = 4'b0001;
-							 hora_C_U_next = 4'b0010;
-							 end
-							else	begin
-								if (hora_C_U_next == 4'b0000)begin
-								hora_C_D_next = hora_C_D_next - 1;
-								hora_C_U_next = 4'b1001 ; end
-								else 
-									hora_C_U_next = hora_C_U_next - 1;
-								end
-							end
-												
-							
-						else begin 
-							if  (hora_T_D_next == 4'b0000 && hora_T_U_next == 4'b0000 )begin
-							 hora_T_D_next = 4'b0001;
-							 hora_T_U_next = 4'b0010;
-							 end
-							else	begin
-								if (hora_T_U_next == 4'b0000)begin
-								hora_T_D_next = hora_T_D_next - 1;
-								hora_T_U_next = 4'b1001; end
-								else 
-									hora_T_U_next = hora_T_U_next - 1;
-								end
-							end
-						end
-						
 								
-							
-//**********************24*******************************************							
-				else 
-					if(aumenta) begin
-						if (C_T) begin
-							if  (hora_C_D_next == 4'b0010 && hora_C_U_next == 4'b0011 )begin
-							 hora_C_D_next = 0;
-							 hora_C_U_next = 0;
-							 end
-							else	begin
-								if (hora_C_U_next == 4'b1001)begin
-								hora_C_D_next = hora_C_D_next + 1;
-								hora_C_U_next = 0; end
-								else 
-									hora_C_U_next = hora_C_U_next + 1;
-								end
-							end
-							
-						else begin 
-							if  (hora_T_D_next == 4'b0010 && hora_T_U_next == 4'b0100 )begin
-							 hora_T_D_next = 0;
-							 hora_T_U_next = 0;
-							 end
-							else	begin
-								if (hora_T_U_next == 4'b1001)begin
-								hora_T_D_next = hora_T_D_next + 1;
-								hora_T_U_next = 0; end
-								else 
-									hora_T_U_next = hora_T_U_next + 1;
-								end
+							else begin 
+								if  (hora_T_D_next == 4'b0001 && hora_T_U_next == 4'b0010 )begin
+									 hora_T_D_next = 0;
+									 hora_T_U_next = 4'b0001;
+								 end
+								else	begin
+									if (hora_T_U_next == 4'b1001)begin
+										hora_T_D_next = hora_T_D_next + 1;
+										hora_T_U_next = 0; end
+									else 
+										hora_T_U_next = hora_T_U_next + 1;
+									end
 							end
 						end
-							
+	//**********************24*******************************************				
+						else begin
+							if (C_T) begin
+								if  (hora_C_D_next == 4'b0010 && hora_C_U_next == 4'b0011 )begin
+									 hora_C_D_next = 0;
+									 hora_C_U_next = 0;
+								 end
+								else	begin
+									if (hora_C_U_next == 4'b1001)begin
+										hora_C_D_next = hora_C_D_next + 1;
+										hora_C_U_next = 0; end
+									else 
+										hora_C_U_next = hora_C_U_next + 1;
+									end
+								end
+								
+							else begin 
+								if  (hora_T_D_next == 4'b0010 && hora_T_U_next == 4'b0011 )begin
+									 hora_T_D_next = 0;
+									 hora_T_U_next = 0;
+								 end
+								else	begin
+									if (hora_T_U_next == 4'b1001)begin
+										hora_T_D_next = hora_T_D_next + 1;
+										hora_T_U_next = 0; end
+									else 
+										hora_T_U_next = hora_T_U_next + 1;
+									end
+								end
+							end	
+						end
 					else if(disminuye) begin
-						if (C_T) begin
+		//**********************12*******************************************	
+						if (doce_24) begin
+							if (C_T) begin
+								
+								if  (hora_C_D_next == 4'b0000 && hora_C_U_next == 4'b0001 )begin
+								 hora_C_D_next = 4'b0001;
+								 hora_C_U_next = 4'b0010;
+								 end
+								else	begin
+									if (hora_C_U_next == 4'b0000)begin
+										hora_C_D_next = hora_C_D_next - 1;
+										hora_C_U_next = 4'b1001 ; end
+									else 
+										hora_C_U_next = hora_C_U_next - 1;
+									end
+								end
+													
+								
+							else begin 
+								if  (hora_T_D_next == 4'b0000 && hora_T_U_next == 4'b0001 )begin
+									 hora_T_D_next = 4'b0001;
+									 hora_T_U_next = 4'b0010;
+								 end
+							else	begin
+									if (hora_T_U_next == 4'b0000)begin
+										hora_T_D_next = hora_T_D_next - 1;
+										hora_T_U_next = 4'b1001; end
+									else 
+										hora_T_U_next = hora_T_U_next - 1;
+									end
+								end
+							end
+		//**********************24*******************************************						
+					else begin
+					if (C_T) begin
 							if  (hora_C_D_next == 4'b0000 && hora_C_U_next == 4'b0000 )begin
-							 hora_C_D_next = 4'b0010;
-							 hora_C_U_next = 4'b0011;
+								 hora_C_D_next = 4'b0010;
+								 hora_C_U_next = 4'b0011;
 							 end
 							else	begin
 								if (hora_C_U_next == 4'b0000)begin
-								hora_C_D_next = hora_C_D_next - 1;
-								hora_C_U_next = 4'b1001 ; end
+									hora_C_D_next = hora_C_D_next - 1;
+									hora_C_U_next = 4'b1001 ; end
 								else 
 									hora_C_U_next = hora_C_U_next - 1;
 								end
@@ -383,8 +438,8 @@ module Ingreso_Datos(
 							
 						else begin 
 							if  (hora_T_D_next == 4'b0000 && hora_T_U_next == 4'b0000 )begin
-							 hora_T_D_next = 4'b0010;
-							 hora_T_U_next = 4'b0011;
+								 hora_T_D_next = 4'b0010;
+								 hora_T_U_next = 4'b0011;
 							 end
 							else	begin
 								if (hora_T_U_next == 4'b0000)begin
@@ -395,16 +450,35 @@ module Ingreso_Datos(
 								end
 							end
 						end
-						
-			
+					end
 					
-				else if (corre_der) 
-					contador_maquina_next = s4;
+				else if (corre_der) begin
+					if(C_T)
+						contador_maquina_next = s4;
+					else 
+						contador_maquina_next = s1;
+					end	
 				else if (corre_izq)
 					contador_maquina_next = s2;
-					else contador_maquina_next = contador_maquina_next;
+				else if (~escribe)
+					contador_maquina_next = s0;	
+				else begin 
+					contador_maquina_next = contador_maquina_next;
+					if(C_T)begin
+						cursor_dia = 0;
+						cursor_min = 0;
+						cursor_T_min = 0;
+						cursor_hora = 1;
+						cursor_T_hora = 0;	 end
+					else begin
+						cursor_dia = 0;
+						cursor_min = 0;
+						cursor_T_min = 0;
+						cursor_hora = 0;
+						cursor_T_hora = 1;					
 					end 
-								 
+				end
+				end			 
 //*************************************ESTADO S4 DIA*******************************
 
 
@@ -414,41 +488,46 @@ module Ingreso_Datos(
 						 dia_D_next = 0;
 						 dia_U_next = 4'b0001;
 						 end
-						else	begin
-							if (dia_U_next == 4'b1001)begin
-							dia_D_next = dia_D_next + 1;
-							dia_U_next = 0; end
-							else 
-								dia_U_next = dia_U_next + 1;
-							end
-					   end
+					else	begin
+						if (dia_U_next == 4'b1001)begin
+						dia_D_next = dia_D_next + 1;
+						dia_U_next = 0; end
+						else 
+							dia_U_next = dia_U_next + 1;
+						end
+					  end
 													
 				else if (disminuye) begin
 					if  (dia_D_next == 4'b0000 && dia_U_next == 4'b0001 )begin
 						 dia_D_next = 4'b0011;
 						 dia_U_next = 4'b0001;
 						 end
-						else	begin
-							if (dia_U_next == 4'b0000)begin
-							dia_D_next = dia_D_next - 1;
-							dia_U_next = 4'b1001 ; end
+					else	begin
+						if (dia_U_next == 4'b0000)begin
+						dia_D_next = dia_D_next - 1;
+						dia_U_next = 4'b1001 ; end
 							else 
 								dia_U_next = dia_U_next - 1;
 							end
 						end
-								
-						
-																
+															
 				else if (corre_der) 
 					contador_maquina_next = s5;
 				else if (corre_izq) 
 					contador_maquina_next = s3;
-						else contador_maquina_next = contador_maquina_next;
-						end 
+				else if (~escribe)
+					contador_maquina_next = s0;	
+				else begin 
+					contador_maquina_next = contador_maquina_next;
+						cursor_dia = 1;
+						cursor_mes = 0;
+						cursor_hora = 0;
+						cursor_T_hora = 0;	 
+						end
+				end
 				
 			
 //*******************************ESTADO S5 MES************************************
-			
 			
 			s5: begin
 				if(aumenta) begin
@@ -478,17 +557,20 @@ module Ingreso_Datos(
 								mes_U_next = mes_U_next - 1;
 							end
 						end
-								
-				
-						
-																
+												
 				else if (corre_der) 
 					contador_maquina_next = s6;
 				else if (corre_izq) 
 					contador_maquina_next = s4;
-						else contador_maquina_next = contador_maquina_next;
-						end 
-				
+				else if (~escribe)
+					contador_maquina_next = s0;	
+				else begin 
+						contador_maquina_next = contador_maquina_next;
+						cursor_dia = 0;
+						cursor_mes = 1;
+						cursor_ano = 0; 
+						end
+				end				
 			
 //*******************************ESTADO S6 ANO************************************
 			
@@ -522,25 +604,29 @@ module Ingreso_Datos(
 							end
 						end
 								
-				
-						
-																
 				else if (corre_der) 
 					contador_maquina_next = s1;
 				else if (corre_izq)  
 					contador_maquina_next = s5;
-						else contador_maquina_next = contador_maquina_next;
-						end 
-			
-						
+				else if (~escribe)
+					contador_maquina_next = s0;	
+				else begin 
+					contador_maquina_next = contador_maquina_next;
+						cursor_seg = 0;
+						cursor_mes = 0;
+						cursor_ano = 1;
+						cursor_T_seg = 0;	 
+						end
+				end
+				
          default: contador_maquina_next = s0;
       endcase					  
 		end				  
 //..............................................................
   
 	assign seg_C = {seg_C_D_reg, seg_C_U_reg};	
-	assign min_C = {min_C_D_reg, min_C_D_reg};
-	assign hora_C = {hora_C_D_reg, hora_C_D_reg};
+	assign min_C = {min_C_D_reg, min_C_U_reg};
+	assign hora_C = {hora_C_D_reg, hora_C_U_reg};
 	assign dia = {dia_D_reg, dia_U_reg};
 	assign mes = {mes_D_reg, mes_U_reg};
 	assign ano = {ano_D_reg, ano_U_reg};
@@ -549,4 +635,5 @@ module Ingreso_Datos(
 	assign hora_T = {hora_T_D_reg, hora_T_U_reg};
 	
 endmodule
+
 

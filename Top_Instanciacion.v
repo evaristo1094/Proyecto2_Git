@@ -38,7 +38,7 @@ Maquina_Principal instance_name4 (   .T_Esc(Term_Esc),    .clk(CLK),    .reset(R
 	 
 Entradas_De_Control instance_name (    .clk(CLK),    .reset(Reset),    .En_Esc(E_esc),    .En_Lect(E_Lect), 
     .CS(CS),    .WR(WR),    .RD(RD),    .AD(AD),    .DIR1(DIR1),    .DAT1(DAT1),   .cambio_est(cambio_est),
-	 .En_tristate(En_tristate),		.DAT_LECT(DAT_LECT));
+	 .cambio_est2(cambio_est2),		.En_tristate(En_tristate),		.DAT_LECT(DAT_LECT));
 	 
 Maquina_Escritura instance_name2 (    .clk(CLK),     .reset(Reset),     .En_clk(clk_timer),     .DAT(DAT1), 
     .DIR(DIR1),     .Escritura(Escribe),     .D_Seg(Dir_segundo),     .D_Min(Dir_minuto),     .D_Hora(Dir_hora), 
@@ -47,7 +47,7 @@ Maquina_Escritura instance_name2 (    .clk(CLK),     .reset(Reset),     .En_clk(
 	 .doce_24C(doce_24),		.Inicializar(Inicializador_MP));
 	 
 Maquina_Lectura instance_name3 (    .clk(CLK),     .reset(Reset),     .DAT(DAT1),     .DIR(DIR1), 
-    .En_clk(clk_timer),     .Lectura(Lee),     .cambio_estado(cambio_est),     .D_Seg(Dir_segundo), 
+    .En_clk(clk_timer),     .Lectura(Lee),     .cambio_estado(cambio_est), .cambio_estado2(cambio_est2),     .D_Seg(Dir_segundo), 
     .D_Min(Dir_minuto),   .D_Hora(Dir_hora),    .Seg_LC(Seg_LC),    .Min_LC(Min_LC),    .Hora_LC(Hora_LC),    
 	 .Ano_LC(Ano_LC),    .Mes_LC(Mes_LC),     .Dia_LC(Dia_LC),     .Term_Lect(Term_Lect),     .E_Lect(E_Lect),   
 	 .Dir_L(Dir_L),		.Dato_L(Dato_Le), 	.Tr_Lect(Tr_Lect), 		.DAT2(DAT_LECT),	.clk_timerL(clk_timerL),

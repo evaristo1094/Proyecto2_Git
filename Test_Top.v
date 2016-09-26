@@ -85,7 +85,7 @@ module Test_Top;
 		.RDO(RDO), 
 		.Bus_Dato_Dir(Bus_Dato_Dir)
 	);
-
+assign Bus_Dato_Dir = (~RDO) ?  8'b00100011 : 8'bzzzzzzzz;
 	initial begin
 		// Initialize Inputs
 		CLK = 0;
@@ -113,6 +113,8 @@ module Test_Top;
 		#10;
 		doce_24 = 1;
 		WR1 = 0;
+		#580;
+
 		#4000;
 		WR1 = 1;
 		CT = 1;

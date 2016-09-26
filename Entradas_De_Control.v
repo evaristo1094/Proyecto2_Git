@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 module Entradas_De_Control(input wire clk, reset,
 En_Esc,En_Lect,															//// Entradas para habilitar cuentas y salidas
-output wire CS, WR,RD,AD, DIR1, DAT1,DAT_LECT,cambio_est,	///Salidas que controlaran los tiempo de manejo del RTC
+output wire CS, WR,RD,AD, DIR1, DAT1,DAT_LECT,cambio_est,cambio_est2,	///Salidas que controlaran los tiempo de manejo del RTC
 En_tristate	 );															/// Activacion del triestato para el envio de los datos
    
 localparam inicio = 2;  // tiempo que tarda despues de entrada a cada estado para realizar la escritura determinada
@@ -40,7 +40,7 @@ reg [6:0] ctrl_count_reg,ctrl_count_next;
 // Registros que se utilizaran para guardar y luego transmitir a las salidas
 reg CS_reg, WR_reg,AD_reg,CS_next, WR_next,AD_next,RD_reg,RD_next;
 reg DIR_reg, DAT_reg,DIR_next, DAT_next,cambio_estado_reg, cambio_estado_next;
-reg DAT_LECT_reg,DAT_LECT_next;
+reg DAT_LECT_reg,DAT_LECT_next,cambio_estado2_reg, cambio_estado2_next;
 reg En_tristate_reg,En_tristate_next;
 
 // inicializacion y refrezco de los registros a utlizar de las variables salida
@@ -54,6 +54,7 @@ always @( posedge clk, posedge reset)	begin
 			DIR_reg <= 0;
 			DAT_reg <= 0;
 			cambio_estado_reg <=0;
+			cambio_estado2_reg <=0;
 			DAT_LECT_reg <=0;
 			En_tristate_reg <=0;
 				end
@@ -67,6 +68,7 @@ always @( posedge clk, posedge reset)	begin
 			DAT_reg <= DAT_next;
 			DAT_LECT_reg <= DAT_LECT_next;
 			cambio_estado_reg <= cambio_estado_next;
+			cambio_estado2_reg <= cambio_estado2_next;
 			En_tristate_reg <= En_tristate_next;
 			end
 	end
@@ -155,22 +157,30 @@ always @( posedge clk, posedge reset) begin
 		
 	always@*
 			begin
-			if (ctrl_count_reg >=(inicio + TA_Ds  + Tcs + Tw  + Tcs  - Tdw ) &&	ctrl_count_reg<=(inicio + TA_Ds  + Tcs + Tw + Tcs + Tdh))
-				DAT_LECT_next = 1'b1;
-			else 
-				DAT_LECT_next = 1'b0;
+				if (ctrl_count_reg >=(inicio + TA_Ds  + Tcs + Tw  + Tcs  - Tdw + 1 ) &&	ctrl_count_reg<=(inicio + TA_Ds  + Tcs + Tw + Tcs + (Tdh - 1)))
+					DAT_LECT_next = 1'b1;
+				else 
+					DAT_LECT_next = 1'b0;
 			end
 			
 ////////// Creacion de una bandera que habilitara el cambio de estado en las maquinas de esc y lect//////////			
 	
 	always@* 
 		begin
-		if (ctrl_count_reg >= (inicio + TA_Ds + Tcs + Tw + Tcs + Tdh) && ctrl_count_reg <= (inicio + TA_Ds  + Tcs + Tw  + Tcs  + Tdh + 1) )
-			cambio_estado_next = 1;
-		else 
-			cambio_estado_next = 0;
+			if (ctrl_count_reg >= (inicio + TA_Ds + Tcs + Tw + Tcs + Tdh) && ctrl_count_reg <= (inicio + TA_Ds  + Tcs + Tw  + Tcs  + Tdh + 1) )
+				cambio_estado_next = 1;
+			else 
+				cambio_estado_next = 0;
 		end
-		
+////////// Creacion de una bandera que habilitara el cambio de estado en las maquinas de lect//////////			
+	
+	always@* 
+		begin
+			if (ctrl_count_reg == (inicio + TA_Ds + Tcs + Tw + Tcs + Tdh))
+				cambio_estado2_next = 1;
+			else 
+				cambio_estado2_next = 0;
+		end		
 ////////// Creacion de senal de Eneable del tri estado del bus de datos ////////////////	
 
 	always@*
@@ -202,5 +212,6 @@ always @( posedge clk, posedge reset) begin
 	assign DAT1 = DAT_reg;
 	assign DAT_LECT = DAT_LECT_reg;
 	assign cambio_est = cambio_estado_reg;
+	assign cambio_est2 = cambio_estado2_reg;
 	assign En_tristate = En_tristate_reg ;
 endmodule
