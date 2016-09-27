@@ -20,15 +20,15 @@
 //////////////////////////////////////////////////////////////////////////////////
 module instanciacion_vga_2(input wire CLK_TB, RESET_TB, activring_TB, bandera_TB_hh, bandera_TB_mh, bandera_TB_sh, bandera_TB_df,
     input wire bandera_TB_mf, bandera_TB_af, bandera_TB_hc, bandera_TB_mc, bandera_TB_sc, 
-	 input wire [3:0] numero, 
+	 input wire [7:0] hora, min, seg, dia, mes, ano, c_hora, c_min, c_seg, 
 	 output wire v_sync, h_sync,
-	 output wire [3:0] text_on_out,
+	 output wire [6:0] text_on_out,
 	 output wire [2:0] text_rgb_out
 	 );
 	 
 	 wire videoon, vsync, hsync;
 	 wire [9:0] pixx, pixy;
-	 wire [3:0] text_on;
+	 wire [6:0] text_on;
 	 wire [2:0] text_rgb;
 	 
 	 
@@ -59,24 +59,24 @@ vga_interfaz instance_name2 (
     .bandera_Hcrono(bandera_TB_hc), 
     .bandera_Mcrono(bandera_TB_mc), 
     .bandera_Scrono(bandera_TB_sc), 
-    .hora1(numero), 
-    .hora2(numero), 
-    .min1(numero), 
-    .min2(numero), 
-    .sec1(numero), 
-    .sec2(numero), 
-    .dia1(numero), 
-    .dia2(numero), 
-    .mes1(numero), 
-    .mes2(numero), 
-    .ano1(numero), 
-    .ano2(numero), 
-    .ch1(numero), 
-    .ch2(numero), 
-    .cm1(numero), 
-    .cs1(numero), 
-    .cs2(numero), 
-    .cm2(numero), 
+    .hora1(hora[7:4]), 
+    .hora2(hora[3:0]), 
+    .min1(min[7:4]), 
+    .min2(min[3:0]), 
+    .sec1(seg[7:4]), 
+    .sec2(seg[3:0]), 
+    .dia1(dia[7:4]), 
+    .dia2(dia[3:0]), 
+    .mes1(mes[7:4]), 
+    .mes2(mes[3:0]), 
+    .ano1(ano[7:4]), 
+    .ano2(ano[3:0]), 
+    .ch1(c_hora[7:4]), 
+    .ch2(c_hora[3:0]), 
+    .cm1(c_min[7:4]), 
+    .cs1(c_seg[3:0]), 
+    .cs2(c_seg[7:4]), 
+    .cm2(c_min[3:0]), 
     .pix_x(pixx), 
     .pix_y(pixy), 
     .text_on(text_on), 

@@ -28,7 +28,7 @@ module vga_interfaz (
 	 input wire [3:0] ch1, ch2, cm1,
     input wire [3:0]	cs1, cs2, cm2,
     input wire [9:0] pix_x, pix_y,
-    output wire [3:0] text_on,
+    output wire [6:0] text_on,
     output reg [2:0] text_rgb
     );
    // signal declaration
@@ -59,7 +59,7 @@ font_rom instance_name (
    //  - scale to 64-by-128 font
    //  - line 32, 4 chars: "HORA"
    //-------------------------------------------
-   assign hora_on = (1<=pix_y[7:5]) && (pix_y[7:5]<=4) && (3<=pix_x[8:6]) && (pix_x[8:6]<=6);
+   assign hora_on = (0<=pix_y[9:5]) && (pix_y[9:5]<=3) && (3<=pix_x[8:6]) && (pix_x[8:6]<=6);
    assign row_addr_h = pix_y[6:3];
    assign bit_addr_h = pix_x[5:3];
    always @*begin
@@ -77,7 +77,7 @@ font_rom instance_name (
    //
    //   - scale to 32-by-64 
    //-------------------------------------------
-   assign Thora_on = (pix_y[7:6]==2) &&
+   assign Thora_on = (4<=pix_y[9:5]) && (pix_y[9:5]<=5) &&
                     (3<=pix_x[8:6]) && (pix_x[8:6]<=6);
   //revisar apuntes si no funciona cordenadas y
    assign row_addr_Th = pix_y[5:2];
@@ -101,7 +101,7 @@ font_rom instance_name (
    //   - scale 32 by 64 font
    //     
    //-------------------------------------------
-   assign fecha_on = (pix_y[8:6]==4) && (2<=pix_x[7:5]) && (pix_x[7:5]<=6);
+   assign fecha_on = (pix_y[8:6]==4) && (2<=pix_x[9:5]) && (pix_x[9:5]<=6);
    assign row_addr_f = pix_y[5:2];
    assign bit_addr_f = pix_x[4:2];
    always @*begin
@@ -120,8 +120,8 @@ font_rom instance_name (
    //  - display "DATE 00/00/00" 
    //  - scale to 16-by-32 fonts
    //-----------------------------------------
-   assign Tfecha_on = (pix_y[6:5]==2) &&
-                    (1<=pix_x[7:6]) && (pix_x[7:6]<=2);
+   assign Tfecha_on = (pix_y[8:5]==10) &&
+                    (1<=pix_x[9:6]) && (pix_x[9:6]<=2);
    assign row_addr_Tf = pix_y[4:1];
    assign bit_addr_Tf = pix_x[3:1];
    always @* begin
@@ -142,7 +142,7 @@ font_rom instance_name (
 	//
 	//
 	//scale 32-by-64
-   assign crono_on = (pix_y[8:6]==4) &&
+   assign crono_on = (pix_y[9:6]==4) &&
                     (11<=pix_x[8:5]) && (pix_x[8:5]<=15);
    assign row_addr_c = pix_y[5:2];
    assign bit_addr_c = pix_x[4:2];
@@ -160,7 +160,7 @@ font_rom instance_name (
 	//
 	//
 	//scale 16-by-32
-	assign Tcrono_on = (pix_y[6:5]==2) &&
+	assign Tcrono_on = (pix_y[8:5]==10) &&
                     (11<=pix_x[8:5]) && (pix_x[8:5]<=14);
    assign row_addr_Tc = pix_y[4:1];
    assign bit_addr_Tc = pix_x[3:1];
@@ -187,11 +187,11 @@ font_rom instance_name (
    always @*begin
 		char_addr_r = 7'h00;
       case(pix_x[8:5])
-         4'h8: char_addr_r = 7'h43; //*
+         4'h8: char_addr_r = 7'h2a; //*
          4'h9: char_addr_r = 7'h52; //R
-         4'ha: char_addr_r = 7'h4f; //I 
+         4'ha: char_addr_r = 7'h49; //I 
          4'hb: char_addr_r = 7'h4e; //N 
-         4'hc: char_addr_r = 7'h4f; //G  
+         4'hc: char_addr_r = 7'h47; //G  
       endcase	
 	end
 	
@@ -220,11 +220,11 @@ font_rom instance_name (
 				row_addr = row_addr_Th;
 				bit_addr = bit_addr_Th;
 				
-				if(6<=pix_x[8:5]<=7 && bandera_Hhora && font_bit)
+				if(6<=pix_x[9:5] && pix_x[9:5]<=7 && bandera_Hhora && font_bit)
 					text_rgb = 3'b100; //red
-				else if(9<=pix_x[8:5]<=10 && bandera_Mhora && font_bit)
+				else if(9<=pix_x[9:5] && pix_x[9:5]<=10 && bandera_Mhora && font_bit)
 					text_rgb = 3'b100; //red
-				else if(12<=pix_x[8:5]<=13 && bandera_Shora && font_bit)
+				else if(12<=pix_x[9:5] && pix_x[9:5]<=13 && bandera_Shora && font_bit)
 					text_rgb = 3'b100; //red
 				else if(font_bit)
 					text_rgb =3'b111; //white		
@@ -247,11 +247,11 @@ font_rom instance_name (
             char_addr = char_addr_Tf;
             row_addr = row_addr_Tf;
             bit_addr = bit_addr_Tf;
-				if (4<=pix_x[7:4]<=5 && bandera_Dfecha && font_bit)
+				if (4<=pix_x[9:4] && pix_x[9:4]<=5 && bandera_Dfecha && font_bit)
 					text_rgb = 3'b100; //red
-				else if(7<=pix_x[7:4]<=8 && bandera_Mfecha && font_bit)
+				else if(7<=pix_x[9:4] && pix_x[9:4]<=8 && bandera_Mfecha && font_bit)
 					text_rgb = 3'b100; //red
-				else if(10<=pix_x[7:4]<=11 && bandera_Afecha && font_bit)
+				else if(10<=pix_x[9:4] && pix_x[9:4]<=11 && bandera_Afecha && font_bit)
 					text_rgb = 3'b100; //red
             else if (font_bit)
                text_rgb = 3'b111; //white
@@ -275,17 +275,17 @@ font_rom instance_name (
             char_addr = char_addr_Tc;
             row_addr = row_addr_Tc;
             bit_addr = bit_addr_Tc;
-				if (6<=pix_x[7:4]<=7 && bandera_Hcrono)begin
+				if (6<=pix_x[7:4]&& pix_x[7:4]<=7 && bandera_Hcrono)begin
 					if (font_bit)
 						text_rgb = 3'b100; //red
 					else 
 					text_rgb =3'b000;end	
-				else if(9<=pix_x[7:4]<=10 && bandera_Mcrono)begin
+				else if(9<=pix_x[7:4] && pix_x[7:4]<=10 && bandera_Mcrono)begin
 					if (font_bit)
 						text_rgb = 3'b100;//red
 					else 
 						text_rgb = 3'b000;end
-				else if(12<=pix_x[7:4]<=13 && bandera_Scrono)begin
+				else if((12<=pix_x[7:4] && pix_x[7:4]<=13 && bandera_Scrono)| (pix_x[0] == 0 && pix_y[0] == 0))begin
 					if (font_bit)
 						text_rgb = 3'b100; //red
 					else 

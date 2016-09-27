@@ -79,7 +79,7 @@ always @( posedge clk, posedge reset) begin
 		if (reset)
 			ctrl_count_next <= 0;
 		else if(En_Esc | En_Lect)
-			ctrl_count_next <= ctrl_count_next + 1;
+			ctrl_count_next <= ctrl_count_next + 7'b1;
 		else
 			ctrl_count_next <= 0;
 		end	

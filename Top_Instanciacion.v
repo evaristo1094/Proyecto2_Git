@@ -18,9 +18,15 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module Top_Instanciacion(input wire CLK,Reset,WR1,CT,doce_24,Btn_Limpiar,input wire [7:0] clk_seg1,clk_min1,
-clk_hora1,Mes1,Dia1,Ano1,output wire [7:0] Mes2,Dia2,Ano2,Seg2,Min2,Hora2,Seg2_T,Min2_T,Hora2_T,
-output wire WRO,CSO,ADO,RDO, inout wire [7:0] Bus_Dato_Dir);
+module Top_Instanciacion(input wire CLK,Reset,
+WR1,	   		// pulso de un switch para escribir los datos al RTC
+CT,				// senal de switch para saber si se esta escribiendo el reloj (1) o el timer (0)
+doce_24,			// switch para determinar si se escribe en formato 12h(1) o 24h(0)
+Btn_Limpiar,	// switch para inicializar el RTC
+input wire [7:0] clk_seg1,clk_min1,clk_hora1,Mes1,Dia1,Ano1, // datos a escribir al RTC
+output wire [7:0] Mes2,Dia2,Ano2,Seg2,Min2,Hora2,Seg2_T,Min2_T,Hora2_T, //datos de lectura del RTC va al VGA
+output wire WRO,CSO,ADO,RDO, //senales de control del RTC
+inout wire [7:0] Bus_Dato_Dir); //bus de direcciones y datos del RTC
 
 tri [7:0]  Bus_Dato_Di;  
 wire Term_Esc,Term_Lect, Escribe, Lee,DAT1,DIR1,cambio_est,clk_timer,E_esc,E_Lect,En_tristate,Tr_Lect;
