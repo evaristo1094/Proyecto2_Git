@@ -18,20 +18,19 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module top_proyII_digitales(input wire clk, reset,  derecha, activring_TB, izquierda, aumenta, disminuya, configuracion, sw_Clk_timer, boton_doce_24,
-sw_escribir, sw_inicializador,  
+module top_proyII_digitales(input wire clk, reset,  derecha,  izquierda, aumenta, disminuya, configuracion, sw_Clk_timer, boton_doce_24,
+sw_escribir, sw_inicializador,  apagar_alarma,
 output wire [6:0] text_on_out,
 output wire [2:0] text_RGB_out,
 output wire h_sync, v_sync,
 output wire CSO,WRO,RDO,ADO,
-inout wire [7:0]Bus_Dato_Dir
+inout wire [7:0]Bus_Dato_Dire
     );
 	 
 wire curs_seg, curs_min, curs_hora, curs_dia, curs_mes, curs_ano, curs_T_seg, curs_T_min, curs_T_hora;
 wire [7:0] s_VGA, mi_VGA, h_VGA, d_VGA, me_VGA, an_VGA, s_T_VGA, m_T_VGA, h_T_VGA;
-
-
-
+wire [7:0] Bus_Dato_Dir;
+wire activring;
 // Instantiate the module
 Inst_Mux_Usuario instance_name (
     .btn_dism(disminuya), 
@@ -67,14 +66,16 @@ Inst_Mux_Usuario instance_name (
     .RDO(RDO), 
     .CSO(CSO), 
     .ADO(ADO),
-	 .Bus_Dato_Dir(Bus_Dato_Dir)
+	 .Bus_Dato_Dir(Bus_Dato_Dir),
+	 .activring(activring),
+	 .apagar_alarma(apagar_alarma)
     );
 
 // Instantiate the module
 instanciacion_vga_2 instance_name2 (
     .CLK_TB(clk), 
     .RESET_TB(reset), 
-    .activring_TB(activring_TB), 
+    .activring_TB(activring), 
     .bandera_TB_hh(curs_hora), 
     .bandera_TB_mh(curs_min), 
     .bandera_TB_sh(curs_seg), 
@@ -99,10 +100,7 @@ instanciacion_vga_2 instance_name2 (
     .text_rgb_out(text_RGB_out)
     );
 
-
-
-
-
+assign Bus_Dato_Dire = Bus_Dato_Dir ; 
 
 
 endmodule

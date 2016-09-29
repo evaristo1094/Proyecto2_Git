@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 module Maquina_Lectura(input wire clk, reset, 
 DAT,DIR,DAT2,cambio_estado,cambio_estado2, 	//entradas para controlar el envio de datos, vienen de entradas de control
-En_clk, Lectura, 					// senales de la maquina principal, la primera lectura del clk o timer, segunda habilita la lect
+En_clk, Lectura, inicializa,					// senales de la maquina principal, la primera lectura del clk o timer, segunda habilita la lect
 input wire [7:0] D_Seg,D_Min,D_Hora, Dato_L,  						//entradas de direcciones de maquina principal y datos del RTC  
 output wire [7:0] Seg_LC,Min_LC,Hora_LC,Ano_LC, Mes_LC, Dia_LC,// salidas de los datos de lectura del clk
 Seg_LT,Min_LT,Hora_LT, 														 /// salidas de lectura del timer
@@ -105,21 +105,24 @@ always@*
 			Mes_next = Mes_reg;
 			Ano_next = Ano_reg;
 			clk1_timer2_next = clk1_timer2;
-      case (ctrl_maquina)
+     if(~inicializa)
+		begin	
+	  case (ctrl_maquina)
 			
 			
 					////////// Estado general, espera la senal de lectura para empezar el proceso////////////
 					
 					
             s0 : begin
-					Dato_Dir_next = 8'b11111111;
-				  if (Lectura) begin
+				//	
+				  if (Lectura && ~inicializa) begin
 						Term_Lect_reg = 0;
                   ctrl_maquina_next = s1;
 						clk1_timer2_next = 0;
+						Dato_Dir_next = 8'b11111111;
 						En_Lect_next = 1;end
                else begin
-						ctrl_maquina_next = ctrl_maquina_next; 
+						ctrl_maquina_next = s0; 
                   En_Lect_next = 0;
 						end end
 
@@ -130,7 +133,7 @@ always@*
 							Dato_Dir_next = 8'b11110001;
 						else if (DAT) begin
 							Tr_Lect_next = 1;
-							Dato_Dir_next = 8'b00000001; end
+							Dato_Dir_next = 8'b00000000; end
 						else if (cambio_estado) begin
 							 ctrl_maquina_next = s2;
 							 Tr_Lect_next = 0;
@@ -143,7 +146,7 @@ always@*
 								Dato_Dir_next = 8'b11110010;
 							else if (DAT) begin
 								Tr_Lect_next = 1;
-								Dato_Dir_next = 8'b00000001;end
+								Dato_Dir_next = 8'b00000000;end
 							else if (cambio_estado) begin
 								 Tr_Lect_next = 0;
 								 ctrl_maquina_next = s3;
@@ -290,6 +293,12 @@ always@*
 					default : ctrl_maquina_next = s0;
          endcase
 		end
+		else begin
+		ctrl_maquina_next = s0; 
+		Term_Lect_reg = 1;
+		En_Lect_next = 0; 
+		end
+	end
 	//////////////// Asignacion de las variables de salida//////////////	
 	assign Seg_LC = Seg_C_reg;
 	assign Min_LC = Min_C_reg;

@@ -27,17 +27,17 @@ module Test_Top;
 	// Inputs
 	reg CLK;
 	reg Reset;
+	reg inicializar;
 	reg WR1;
 	reg CT;
 	reg doce_24;
-	reg Btn_Limpiar;
 	reg [7:0] clk_seg1;
 	reg [7:0] clk_min1;
 	reg [7:0] clk_hora1;
 	reg [7:0] Mes1;
 	reg [7:0] Dia1;
 	reg [7:0] Ano1;
-
+	reg [7:0]T_seg,T_min,T_hora;
 	// Outputs
 	wire [7:0] Mes2;
 	wire [7:0] Dia2;
@@ -49,10 +49,9 @@ module Test_Top;
 	wire [7:0] Min2_T;
 	wire [7:0] Hora2_T;
 	wire WRO;
-	wire CSO;
+	wire CSO,alarma_ON;
 	wire ADO;
 	wire RDO;
-
 	// Bidirs
 	wire [7:0] Bus_Dato_Dir;
 
@@ -60,10 +59,10 @@ module Test_Top;
 	Top_Instanciacion uut (
 		.CLK(CLK), 
 		.Reset(Reset), 
+		.inicializar(inicializar),
 		.WR1(WR1), 
 		.CT(CT),
 		.doce_24(doce_24),
-		.Btn_Limpiar(Btn_Limpiar),
 		.clk_seg1(clk_seg1), 
 		.clk_min1(clk_min1), 
 		.clk_hora1(clk_hora1), 
@@ -83,7 +82,11 @@ module Test_Top;
 		.CSO(CSO), 
 		.ADO(ADO), 
 		.RDO(RDO), 
-		.Bus_Dato_Dir(Bus_Dato_Dir)
+		.Bus_Dato_Dir(Bus_Dato_Dir),
+		.T_seg(T_seg),
+		.T_min(T_min),
+		.T_hora(T_hora),
+		.alarma_ON(alarma_ON)
 	);
 assign Bus_Dato_Dir = (~RDO) ?  8'b00100011 : 8'bzzzzzzzz;
 	initial begin
@@ -95,7 +98,6 @@ assign Bus_Dato_Dir = (~RDO) ?  8'b00100011 : 8'bzzzzzzzz;
 		clk_seg1 = 0;
 		clk_min1 = 0;
 		clk_hora1 = 0;
-		Btn_Limpiar = 0;
 		doce_24 = 0;
 		Mes1 = 0;
 		Dia1 = 0;
@@ -105,18 +107,18 @@ assign Bus_Dato_Dir = (~RDO) ?  8'b00100011 : 8'bzzzzzzzz;
 		#10;
       Reset = 1;
 		#10;
-      Reset = 0;
+		Reset = 0;
 		#10;
-		Btn_Limpiar = 1;
+		inicializar = 1;
 		#1000;
-		Btn_Limpiar = 0;
+		inicializar = 0;
 		#10;
 		doce_24 = 1;
 		WR1 = 0;
 		#580;
-
-		#4000;
 		WR1 = 1;
+		#4000;
+		WR1 = 0;
 		CT = 1;
 		clk_seg1 = 0;
 		clk_min1 = 10;
@@ -131,8 +133,11 @@ assign Bus_Dato_Dir = (~RDO) ?  8'b00100011 : 8'bzzzzzzzz;
 		Dia1 = 6;
 		Ano1 = 10;
 		#4000;
-		// Add stimulus here
-
+		#10;
+		inicializar = 1;
+		#2000;
+		inicializar = 0;
+		#10;
 	end
   always  begin
 		#5	CLK = ~CLK;

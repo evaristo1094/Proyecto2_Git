@@ -23,7 +23,7 @@ En_Esc,En_Lect,															//// Entradas para habilitar cuentas y salidas
 output wire CS, WR,RD,AD, DIR1, DAT1,DAT_LECT,cambio_est,cambio_est2,	///Salidas que controlaran los tiempo de manejo del RTC
 En_tristate	 );															/// Activacion del triestato para el envio de los datos
    
-localparam inicio = 2;  // tiempo que tarda despues de entrada a cada estado para realizar la escritura determinada
+localparam inicio = 7;  // tiempo que tarda despues de entrada a cada estado para realizar la escritura determinada
 localparam Tcs = 5; // tiempo minimo del chip select en bajo (50, para escribir)
 localparam Tf = 0 ; // tiempo de bajada del flanco (fall) 
 localparam Tr = 0 ; // tiempo de subida del flanco (rise)

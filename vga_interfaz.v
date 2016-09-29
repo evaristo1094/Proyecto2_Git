@@ -34,13 +34,13 @@ module vga_interfaz (
    // signal declaration
    wire [10:0] rom_addr;
    reg [6:0] char_addr, char_addr_h, char_addr_Th,
-             char_addr_f, char_addr_Tf, char_addr_c, char_addr_Tc, char_addr_r;
+             char_addr_f, char_addr_Tf, char_addr_c, char_addr_Tc, char_addr_r, char_addr_ampm;
    reg [3:0] row_addr;
-   wire [3:0] row_addr_h, row_addr_Th, row_addr_f, row_addr_Tf, row_addr_c, row_addr_Tc, row_addr_r;
+   wire [3:0] row_addr_h, row_addr_Th, row_addr_f, row_addr_Tf, row_addr_c, row_addr_Tc, row_addr_r, row_addr_ampm;
    reg [2:0] bit_addr;
-   wire [2:0] bit_addr_h, bit_addr_Th,bit_addr_f, bit_addr_Tf, bit_addr_c, bit_addr_Tc, bit_addr_r;
+   wire [2:0] bit_addr_h, bit_addr_Th,bit_addr_f, bit_addr_Tf, bit_addr_c, bit_addr_Tc, bit_addr_r, bit_addr_ampm;
    wire [7:0] font_word;
-   wire font_bit, hora_on, Thora_on, fecha_on, Tfecha_on, crono_on, Tcrono_on, ring_on;
+   wire font_bit, hora_on, Thora_on, fecha_on, Tfecha_on, crono_on, Tcrono_on, ring_on, ampm_on;
    
 
 // Instantiate the module
@@ -85,7 +85,7 @@ font_rom instance_name (
    always @*begin
 	char_addr_Th = 4'h0;
       case (pix_x[8:5])
-         4'h6: char_addr_Th = {3'b011, hora1}; //hora 1
+         4'h6: char_addr_Th = {3'b011, {1'b0, hora1[2:0]}}; //hora 1
          4'h7: char_addr_Th = {3'b011, hora2}; // hora 2
          4'h8: char_addr_Th = 7'h3a; // : 
          4'h9: char_addr_Th = {3'b011, min1}; //min 1
@@ -95,6 +95,23 @@ font_rom instance_name (
 			4'hd: char_addr_Th = {3'b011, sec2}; //sec 2
       endcase
 		end
+		
+	//------------------------------------------
+	// region AM/PM
+	//-----------display am pm
+	// scales 32-by-64
+	assign ampm_on =(4<=pix_y[9:5]) && (pix_y[9:5]<=5) && (15<=pix_x[9:5]) &&
+							(pix_x[9:5]<=16);
+	assign row_addr_ampm = pix_y[5:2];
+	assign bit_addr_ampm = pix_x[4:2];
+	always @*begin
+	char_addr_ampm = 7'h00;
+		case (pix_x[9:5])
+			5'h0f: char_addr_ampm = {hora1[3]+3'b100, 4'b0001-hora1[3]};//A o M
+			5'h10: char_addr_ampm = 7'h4d; //M
+		endcase
+	end
+	
    //-------------------------------------------
    // fecha region
    //   - display fecha
@@ -231,6 +248,18 @@ font_rom instance_name (
 				else 
 					text_rgb =3'b000;
          end
+			
+		else if (ampm_on && video_on)
+			begin
+				char_addr = char_addr_ampm;
+				row_addr = row_addr_ampm;
+				bit_addr = bit_addr_ampm;
+				if (font_bit)
+					text_rgb = 3'b011;//rojo
+				else
+					text_rgb = 3'b000;//negro
+			end
+				
       else if (fecha_on && video_on)
          begin
             char_addr = char_addr_f;

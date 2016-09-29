@@ -29,7 +29,7 @@ output reg	dism,aument,derec,izqda,		// salidas con rebote eliminado
 output wire escrib, sw_CT, sw_conf, DOCE_24,inicializador);			// salidas con rebote eliminado  
 
 
-localparam un_tercio_s = 30000000;
+localparam un_tercio_s = 20000000;
 localparam treinta_mil_ns = 3000000;
 reg escrib_reg, sw_CT_reg, sw_conf_reg, DOCE_24_reg,escrib_next, sw_CT_next, sw_conf_next, DOCE_24_next;
 reg inicializador_reg, inicializador_next;
@@ -87,7 +87,7 @@ always @* begin
 			contador2_next = 0; 
 			inicializador_next = sw_inicializador;end
 		else begin
-			contador2_next = contador2_next + 22'b1;
+			contador2_next = contador2_next + 2'b1;
 			escrib_next = 	escrib_reg;
 			sw_CT_next = sw_CT_reg;
 			sw_conf_next = sw_conf_reg;
