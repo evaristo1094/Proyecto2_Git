@@ -81,7 +81,7 @@ always @ *
 							activring = 1'b0;	end
 			end
 		s1:	begin
-						if(HRTC == 8'b00000000 && MRTC == 8'b00000000 && SRTC == 8'b00000000)begin
+						if(HRTC == 8'b00100011 && MRTC == 8'b01011001 && SRTC == 8'b01011001)begin
 							ctrl_maquina_next = s2;
 								end
 						else begin
@@ -99,10 +99,18 @@ always @ *
 		s2: begin
 			if(apagar_alarma)begin
 				activring = 1'b0;
-				ctrl_maquina_next = s0;	end
+				ctrl_maquina_next = s0;	
+				
+				end
 			else begin 
 				ctrl_maquina_next = s2;	
-				activring = 1'b1;end
+				activring = 1'b1;
+				hora1_next = 4'b0000;
+				hora2_next = 4'b0000;
+				min1_next  = 4'b0000;
+				min2_next  = 4'b0000;
+				seg1_next  = 4'b0000;
+				seg2_next  = 4'b0000;end
 		end
 		default : ctrl_maquina_next = s0;
 		

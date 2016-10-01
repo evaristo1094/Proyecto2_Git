@@ -45,7 +45,7 @@ module Ingreso_Datos(
 	reg [3:0] min_T_D_reg, min_T_D_next, min_T_U_reg, min_T_U_next;
 	reg [3:0] hora_T_D_reg, hora_T_D_next, hora_T_U_reg, hora_T_U_next;
 	reg [2:0] contador_maquina_reg, contador_maquina_next;
-	
+	reg PM,PM_next;
 //...........................................................
 	
 	always @(posedge clk, posedge reset) begin
@@ -69,6 +69,7 @@ module Ingreso_Datos(
 			 hora_T_D_reg <= 0;
 			 hora_T_U_reg <= 0;
 			 contador_maquina_reg <= 0;
+			 PM <=0;
 		end 
        else begin
           seg_C_D_reg <= seg_C_D_next; 
@@ -90,6 +91,7 @@ module Ingreso_Datos(
 	       hora_T_D_reg <= hora_T_D_next;
 			 hora_T_U_reg <= hora_T_U_next;
 			 contador_maquina_reg <= contador_maquina_next;
+			 PM <= PM_next;
 			 end end
 //...........................................................
 					  
@@ -122,7 +124,7 @@ module Ingreso_Datos(
 		cursor_T_seg = 0;
 		cursor_T_min = 0;
 		cursor_T_hora = 0;
-		
+		PM_next = PM;
 //***********************ESTADO S0****************************		
 		
       case (contador_maquina_next)
@@ -142,8 +144,6 @@ module Ingreso_Datos(
 						cursor_dia = 0;
 						cursor_mes = 0;
 						cursor_ano = 0;
-						seg_T_D_next = 4'b1000;
-						min_T_D_next = 4'b1000;
 						cursor_T_seg = 0;
 						cursor_T_min = 0;
 						cursor_T_hora = 0; end
@@ -343,18 +343,16 @@ module Ingreso_Datos(
 	//**********************12*******************************************			
 						if (doce_24) begin
 							if (C_T) begin
-								if  (hora_C_D_next >= 4'b0001 && hora_C_U_next >= 4'b0010 )begin
-								 hora_C_D_next = {1'b1,3'b000};
-								 hora_C_U_next = 4'b0001;
+								if  (hora_C_D_next [2:0] >= 3'b001 && hora_C_U_next >= 4'b0010 )begin
+									 PM_next = ~PM;
+									 hora_C_D_next = {PM_next,3'b000};
+									 hora_C_U_next = 4'b0001;
 								 end
-								 else if  (hora_C_D_next == 4'b1001 && hora_C_U_next == 4'b0010 )begin
-									 hora_C_D_next = 0;
-									 hora_C_U_next = 0;
-								 end
+								 
 								else	begin
 									if (hora_C_U_next == 4'b1001)begin
-									hora_C_D_next = hora_C_D_next + 4'b1;
-									hora_C_U_next = 0; end
+										hora_C_D_next [2:0] = 3'b001;
+										hora_C_U_next = 0; end
 									else 
 										hora_C_U_next = hora_C_U_next + 4'b1;
 									end
@@ -411,13 +409,14 @@ module Ingreso_Datos(
 						if (doce_24) begin
 							if (C_T) begin
 								
-								if  (hora_C_D_next == 4'b0000 &&( hora_C_U_next == 4'b0001 | hora_C_U_next == 4'b0000) )begin
-								 hora_C_D_next = 4'b0001;
+								if  (hora_C_D_next [2:0] == 3'b000 &&( hora_C_U_next == 4'b0001 | hora_C_U_next == 4'b0000) )begin
+								 PM_next = ~PM;
+								 hora_C_D_next = {PM_next,3'b001};
 								 hora_C_U_next = 4'b0010;
 								 end
 								else	begin
 									if (hora_C_U_next == 4'b0000)begin
-										hora_C_D_next = hora_C_D_next - 4'b1;
+										hora_C_D_next [2:0] = 3'b000;
 										hora_C_U_next = 4'b1001 ; end
 									else 
 										hora_C_U_next = hora_C_U_next - 4'b1;
